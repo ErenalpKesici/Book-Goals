@@ -106,7 +106,7 @@ class AddBookPage extends State<AddBookPageSend>{
                 ),
               ),
               ElevatedButton.icon(onPressed: () async {
-                save.books.add(Book(name: tecBookName.text, nOfPages:  tecBookNOfPages.text!=''?int.parse(tecBookNOfPages.text):0, rating: rating));
+                save.books!.add(Book(name: tecBookName.text, date: DateTime.now(), nOfPages:  tecBookNOfPages.text!=''?int.parse(tecBookNOfPages.text):0, rating: rating));
                 writeSave();
                 Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
               }, icon: const Icon(Icons.task_alt_rounded), label: const Text("Save"))

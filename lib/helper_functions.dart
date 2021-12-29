@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
+
+
+import 'package:path_provider_windows/path_provider_windows.dart';
 
 import 'main.dart';
 
 void writeSave() async{
-  final externalDir = await getExternalStorageDirectory();
-  await File(externalDir!.path + "/Save.json").writeAsString(jsonEncode(save));
+  final PathProviderWindows provider = PathProviderWindows();
+  final externalDir = await provider.getApplicationSupportPath();
+  await File(externalDir! + "/Save.json").writeAsString(jsonEncode(save));
 }
