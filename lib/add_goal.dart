@@ -27,57 +27,68 @@ class AddGoalPage extends State<AddGoalPageSend>{
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Add or Change Goal"),
+          title: const Text("Modify the Goal"),
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        controller: tecGoalBooks,
-                        textAlign: TextAlign.center,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    controller: tecGoalBooks,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(" books in "),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          controller: tecGoalDuration,
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
-                  const Expanded(child: Text(" books in "),),
-                  Expanded(
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      controller: tecGoalDuration,
-                      textAlign: TextAlign.center,
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: DropdownButton<String>(
+                          alignment: AlignmentDirectional.center,
+                          value: goalDurationType,
+                          onChanged: (String? newValue) {
+                          setState(() {
+                            goalDurationType = newValue;
+                          });
+                          },
+                          items: <String>['Day(s)', 'Month(s)', 'Year(s)'].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: DropdownButton<String>(
-                      alignment: AlignmentDirectional.center,
-                      value: goalDurationType,
-                      onChanged: (String? newValue) {
-                       setState(() {
-                         goalDurationType = newValue;
-                       });
-                      },
-                      items: <String>['Day(s)', 'Month(s)', 'Year(s)'].map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(onPressed: () async {
-                save = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.goalDurationType);
-                writeSave();
-                Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
-              }, icon: const Icon(Icons.task_alt_rounded), label: const Text("Save"))
-            ],
+                  ],
+                ),
+                SizedBox(height: MediaQuery.of(context).size.height/10,),
+                ElevatedButton.icon(onPressed: () async {
+                  save = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.goalDurationType, books: save.books);
+                  writeSave();
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+                }, icon: const Icon(Icons.task_alt_rounded), label: const Text("Save"))
+              ],
+            ),
           ),
         ),
       ),

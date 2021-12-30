@@ -5,8 +5,8 @@ import 'book.dart';
 class Settings{
   int? goalBooks, goalDuration;
   String? goalDurationType;
-  List<Book> books = List.empty(growable: true);
-  Settings({@required this.goalBooks, @required this.goalDuration, @required this.goalDurationType});
+  List<Book>? books = List.empty(growable: true);
+  Settings({@required this.goalBooks, @required this.goalDuration, @required this.goalDurationType, this.books});
   Settings.empty({this.goalBooks = 0, this.goalDuration=0, this.goalDurationType = '',});
   Settings.fromJson(Map<String, dynamic> json): 
     goalBooks = json['goalBooks'],
@@ -18,11 +18,11 @@ class Settings{
       'goalBooks': goalBooks.toString(),
       'goalDuration': goalDuration.toString(),
       'goalDurationType': goalDurationType,
-      'books': books.toString(),
+      'books': books,
     };
   }
   @override
   String toString() {
-    return books.length.toString() +"/" + goalBooks.toString()+" in " + goalDuration.toString() + " " + goalDurationType.toString() +" : " + books.toString();
+    return books!.length.toString() +"/" + goalBooks.toString()+" in " + goalDuration.toString() + " " + goalDurationType.toString() +" : " + books.toString();
   }
 }
