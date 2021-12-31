@@ -1,3 +1,4 @@
+import 'package:book_goals/book_details.dart';
 import 'package:book_goals/helper_functions.dart';
 import 'package:book_goals/main.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,23 @@ class ListBookPageSend extends StatefulWidget{
 }
 class ListBookPage extends State<ListBookPageSend>{
   List<bool> tileSelected = List.filled(save.books!.length, false);
+  TextStyle getTextStyle(){
+    return const TextStyle(
+      letterSpacing: 0.5,
+      shadows: <Shadow>[
+        Shadow(
+          offset: Offset(0.0, 0.0),
+          blurRadius: 10.0,
+          color: Colors.black,
+        ),
+        Shadow(
+          offset: Offset(0.0, 0.0),
+          blurRadius: 10.0,
+          color: Colors.black,
+        ),
+      ],
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,6 +61,13 @@ class ListBookPage extends State<ListBookPageSend>{
                             children: [
                               ElevatedButton(
                                 onPressed: (){
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text("No"),
+                              ),
+                              const SizedBox(width: 5,),
+                              ElevatedButton(
+                                onPressed: (){
                                   List<Book> newBooks = List.empty(growable: true);
                                   for(int i=0;i<save.books!.length;i++){
                                     if(!tileSelected[i]){
@@ -56,13 +81,6 @@ class ListBookPage extends State<ListBookPageSend>{
                                   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MyHomePage()));
                                 },
                                 child: const Text("Yes")
-                              ),
-                              const SizedBox(width: 5,),
-                              ElevatedButton(
-                                onPressed: (){
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text("No"),
                               ),
                             ],
                           )
@@ -79,24 +97,37 @@ class ListBookPage extends State<ListBookPageSend>{
         return SizedBox(
           height: 100, 
           child: 
-            Card(elevation: 1, child: 
-              ListTile(
-                selected: tileSelected[idx],
-                onTap: (){
-                  if(tileSelected.any((element) => element)) {
+            Card(elevation: 1, 
+            child: 
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    fit: BoxFit.cover, 
+                    image: NetworkImage(save.books![idx].imgUrl!)
+                  ),
+                ),
+                child: ListTile(
+                  selected: tileSelected[idx],
+                  onTap: (){
+                    if(tileSelected.any((element) => element)) {
+                      setState(() {
+                        tileSelected[idx] = tileSelected[idx]?false:true;
+                      });
+                    }
+                    else{
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> BookDetailsPageSend(save.books![idx])));
+                    }
+                  },
+                  onLongPress: (){
                     setState(() {
                       tileSelected[idx] = tileSelected[idx]?false:true;
                     });
-                  }
-                },
-                onLongPress: (){
-                  setState(() {
-                    tileSelected[idx] = tileSelected[idx]?false:true;
-                  });
-                },
-                leading: Text(DateFormat("yyyy-MM-dd").format(save.books![idx].date!)),
-                title: Text(save.books![idx].title!+", "+ save.books![idx].nOfPages.toString()+" pages "),
-                trailing: Text(save.books![idx].rating.toString()+" stars"),
+                  },
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                  leading: /*save.books![idx].imgUrl!=''?Image.network(save.books![idx].imgUrl!):*/Text(DateFormat("yyyy-MM-dd").format(save.books![idx].date!), style: getTextStyle(),),
+                  title: Text(save.books![idx].title!+", "+ save.books![idx].nOfPages.toString()+" pages ", style: getTextStyle(),),
+                  trailing: Text(save.books![idx].rating.toString()+" stars", style: getTextStyle(),),
+                ),
               ),
             )
         );

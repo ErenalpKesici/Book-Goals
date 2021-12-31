@@ -5,6 +5,7 @@ class Book{
   List<String>? categories, authors;
   DateTime? date, datePublished;
   int? nOfPages, rating;
+  String? imgUrl;
   Book.empty(){
     title='';
     categories = List.empty(growable: true);
@@ -13,8 +14,9 @@ class Book{
     datePublished=DateTime.now();
     nOfPages=0;
     rating=5;
+    imgUrl = '';
   }
-  Book({@required this.title, @required this.categories, @required this.authors, @required this.date, @required this.nOfPages, @required this.rating, @required this.datePublished});
+  Book({@required this.title, @required this.categories, @required this.authors, @required this.date, @required this.nOfPages, @required this.rating, @required this.datePublished, @required this.imgUrl});
   Book.fromJson(Map<String, dynamic> json): 
     title = json['title'],
     categories = json['categories'], 
@@ -22,7 +24,8 @@ class Book{
     date = json['date'],
     datePublished = json['datePublished'], 
     nOfPages = json['nOfPages'],
-    rating = json['rating'];
+    rating = json['rating'],
+    imgUrl = json['imgUrl'];
   Map<String, dynamic> toJson() {
     return {
       'title': title,
@@ -32,6 +35,7 @@ class Book{
       'datePublished': datePublished.toString(),
       'nOfPages': nOfPages,
       'rating': rating,
+      'imgUrl': imgUrl,
     };
   }
   @override

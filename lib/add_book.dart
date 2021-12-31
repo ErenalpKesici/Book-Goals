@@ -25,7 +25,8 @@ class AddBookPage extends State<AddBookPageSend>{
   Book bookSelected = Book.empty();
   List<Book>? books;
   Future<List<Book>> _getTitles(String query)async{ 
-    Response r = await get(Uri.parse('https://www.googleapis.com/books/v1/volumes?q=title:'+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ'));
+    Response r = await get(Uri.parse('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ'));
+    // print('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ');
     Map<String, dynamic> bookResults =  jsonDecode(r.body);
     if(bookResults['totalItems'] < 1)return List.empty();
     List<Book> ret = List.empty(growable: true);
@@ -47,19 +48,22 @@ class AddBookPage extends State<AddBookPageSend>{
         }
       }
       DateTime datePublished = DateTime.now();
-      if(volumeInfo['publishedDate'] != null && !volumeInfo['publishedDate'].toString().contains('?')){
-        List? date = volumeInfo['publishedDate'].split('-');
-        if(date!.length == 3) {
-          datePublished = DateTime(int.parse(date[0]), int.parse(date[1]), int.parse(date[2]));
-        } 
-        else if(date.length == 2){
-          datePublished = DateTime(int.parse(date[0]), int.parse(date[1]));
-        }
-        else {
-          datePublished = DateTime(int.parse(date[0]));
+      if(volumeInfo['publishedDate'] != null){
+        if(int.tryParse(volumeInfo['publishedDate']) != null){
+          List? date = volumeInfo['publishedDate'].split('-');
+          if(date!.length == 3) {
+            datePublished = DateTime(int.parse(date[0]), int.parse(date[1]), int.parse(date[2]));
+          } 
+          else if(date.length == 2){
+            datePublished = DateTime(int.parse(date[0]), int.parse(date[1]));
+          }
+          else {
+            datePublished = DateTime(int.parse(date[0]));
+          }
         }
       }
-      Book book = Book(title: volumeInfo['title'], categories: categories, authors: authors, date: DateTime.now(), nOfPages: volumeInfo['pageCount'], rating: 5, datePublished: datePublished);
+      Book book = Book(title: volumeInfo['title'], categories: categories, authors: authors, date: DateTime.now(), nOfPages: volumeInfo['pageCount'], rating: 5, datePublished: datePublished, imgUrl: volumeInfo['imageLinks']==null?'':volumeInfo['imageLinks']['thumbnail']);
+      print(book);
        ret.add(book);
     }
     return ret;
@@ -103,7 +107,6 @@ class AddBookPage extends State<AddBookPageSend>{
                     );
                   },
                 optionsBuilder: (TextEditingValue textEditingValue) async{
-                  if(textEditingValue.text == 'a')Focus.maybeOf(context)?.unfocus();
                   bookSelected.title = textEditingValue.text;
                   books = await _getTitles(textEditingValue.text);
                   if(books!.isNotEmpty){
@@ -175,10 +178,15 @@ class AddBookPage extends State<AddBookPageSend>{
               ),
               SizedBox(height: MediaQuery.of(context).size.height/10,),
               ElevatedButton.icon(onPressed: () async {
-                bookSelected.rating = rating;
-                save.books!.add(bookSelected);
-                writeSave();
-                Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+                if(bookSelected.title == ''){
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text('Please enter the title of the book.')));
+                }
+                else{
+                  bookSelected.rating = rating;
+                  save.books!.add(bookSelected);
+                  writeSave();
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+                }
               }, icon: const Icon(Icons.task_alt_rounded), label: const Text("Save"))
             ],
           ),

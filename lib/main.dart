@@ -66,6 +66,9 @@ Future<bool> readSave()async{
               case("rating"):
                 bookToAdd.rating = value;
                 break;
+              case("imgUrl"):
+                bookToAdd.imgUrl = value;
+                break;
             }
           });
           save.books!.add(bookToAdd);
@@ -119,9 +122,17 @@ class _MyHomePageState extends State<MyHomePage> {
         daysTotal = save.goalDuration! * 365;
         break;
     }
-    bookRequiredForGoal = (daysTotal/(save.goalBooks! - save.books!.length)).ceil();
+    if(save.goalBooks! - save.books!.length == 0) bookRequiredForGoal = -1;
+    else {
+      bookRequiredForGoal = (daysTotal/(save.goalBooks! - save.books!.length)).ceil();
+    }
     return bookRequiredForGoal;
   } 
+  @override
+  void initState() {
+    bookRequiredForGoal = _findBookFrequency();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,9 +192,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ],
                       ),
+                      if(bookRequiredForGoal != -1)
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text("A book needs to be finished every " + _findBookFrequency().toString() + " day(s)."),
+                        child: Text("A book needs to be finished every " + bookRequiredForGoal.toString() + " day(s)."),
                       )
                     ],
                   );
@@ -198,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         width: 100,height: 100,
                         child: LinearProgressIndicator(),
                       ),
-                      Positioned(bottom: 10,left: 10,right: 10,top: 10, child: Text("Please Enter a Goal"),)
+                      Positioned(bottom: 10,left: 10,right: 10,top: 10, child: Text("Please Enter Goal and books.", textAlign: TextAlign.center,),)
                     ],
                   ),
                 );
