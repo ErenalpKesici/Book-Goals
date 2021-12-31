@@ -92,17 +92,28 @@ class AddBookPage extends State<AddBookPageSend>{
                   onSelected: (String selected){
                     bookSelected = books!.firstWhere(((element) => element.title==selected));
                   },
-                  optionsBuilder: (TextEditingValue textEditingValue) async{
-                    bookSelected.title = textEditingValue.text;
-                    books = await _getTitles(textEditingValue.text);
-                    if(books!.isNotEmpty){
-                      List<String> ret = List.empty(growable: true);
-                      for(Book book in books!){
-                        ret.add(book.title!);
-                      }
-                      return ret;
+                  fieldViewBuilder: (BuildContext context,TextEditingController textEditingController,FocusNode focusNode,VoidCallback onFieldSubmitted) {
+                    return TextFormField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(labelText: 'Book Title', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)) ),
+                      onFieldSubmitted: (String value) {
+                        focusNode.unfocus();
+                      },
+                    );
+                  },
+                optionsBuilder: (TextEditingValue textEditingValue) async{
+                  if(textEditingValue.text == 'a')Focus.maybeOf(context)?.unfocus();
+                  bookSelected.title = textEditingValue.text;
+                  books = await _getTitles(textEditingValue.text);
+                  if(books!.isNotEmpty){
+                    List<String> ret = List.empty(growable: true);
+                    for(Book book in books!){
+                      ret.add(book.title!);
                     }
-                    return const Iterable.empty();
+                    return ret;
+                  }
+                  return const Iterable.empty();
                   },
                 )
               ),

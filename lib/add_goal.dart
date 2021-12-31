@@ -16,7 +16,7 @@ class AddGoalPageSend extends StatefulWidget{
   }
 }
 class AddGoalPage extends State<AddGoalPageSend>{
-  TextEditingController? tecGoalBooks = TextEditingController(text: save.goalBooks.toString()), tecGoalDuration = TextEditingController(text: save.goalDuration.toString());
+  TextEditingController? tecGoalBooks = TextEditingController(text:  save.goalBooks==0?'':save.goalBooks.toString()), tecGoalDuration = TextEditingController(text: save.goalDuration==0?'':save.goalDuration.toString());
   String? goalDurationType = save.goalDurationType!=""?save.goalDurationType:'Day(s)';
   @override
   Widget build(BuildContext context) {

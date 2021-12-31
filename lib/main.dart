@@ -136,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
             FutureBuilder(
               future: readSave(),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                if(snapshot.hasData && (save.goalBooks! > 0 || save.books!.isNotEmpty)){
+                if(snapshot.hasData && save.goalBooks! > 0 && save.books!.isNotEmpty){
                   return Column(
                     children: [
                       Row(
@@ -167,9 +167,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                                             child: Text((save.books!.length/save.goalBooks!*100).ceil().toString()+"%", textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
                                           ),
-                                           Padding(
-                                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                            child: Text("books read", textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 16),),
+                                          const Padding(
+                                            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                            child: Text("books read", textAlign: TextAlign.center,style: TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 16),),
                                           ),
                                         ],
                                       ) ,
