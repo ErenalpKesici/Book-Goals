@@ -63,7 +63,6 @@ class AddBookPage extends State<AddBookPageSend>{
         }
       }
       Book book = Book(title: volumeInfo['title'], categories: categories, authors: authors, date: DateTime.now(), nOfPages: volumeInfo['pageCount'], rating: 5, datePublished: datePublished, imgUrl: volumeInfo['imageLinks']==null?'':volumeInfo['imageLinks']['thumbnail']);
-      print(book);
        ret.add(book);
     }
     return ret;
@@ -183,7 +182,7 @@ class AddBookPage extends State<AddBookPageSend>{
                 }
                 else{
                   bookSelected.rating = rating;
-                  save.books!.add(bookSelected);
+                  save.last.books!.add(bookSelected);
                   writeSave();
                   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
                 }

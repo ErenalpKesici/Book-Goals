@@ -7,15 +7,18 @@ import 'package:intl/intl.dart';
 import 'book.dart';
 
 class ListBookPageSend extends StatefulWidget{
-  const ListBookPageSend({Key? key}) : super(key: key);
+  final int? idx;
+  ListBookPageSend({Key? key, this.idx}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return ListBookPage();
+    return ListBookPage(this.idx);
   }
 }
 class ListBookPage extends State<ListBookPageSend>{
-  List<bool> tileSelected = List.filled(save.books!.length, false);
+  int? idx;
+  List<bool> tileSelected = List.empty();
+  ListBookPage(this.idx);
   TextStyle getTextStyle(){
     return const TextStyle(
       letterSpacing: 0.5,
@@ -34,6 +37,12 @@ class ListBookPage extends State<ListBookPageSend>{
     );
   }
   @override
+  void initState() {
+    print(idx);
+    tileSelected = List.filled(save[idx!].books!.length, false);
+    super.initState();
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -45,7 +54,7 @@ class ListBookPage extends State<ListBookPageSend>{
                 IconButton(icon: const Icon(Icons.select_all), 
                   onPressed: (){
                     setState(() {
-                      tileSelected = List.filled(save.books!.length, tileSelected.every((element) => element)?false:true);
+                      tileSelected = List.filled(save[idx!].books!.length, tileSelected.every((element) => element)?false:true);
                     });
                   },
                 ),
@@ -69,13 +78,13 @@ class ListBookPage extends State<ListBookPageSend>{
                               ElevatedButton(
                                 onPressed: (){
                                   List<Book> newBooks = List.empty(growable: true);
-                                  for(int i=0;i<save.books!.length;i++){
+                                  for(int i=0;i<save[idx!].books!.length;i++){
                                     if(!tileSelected[i]){
-                                      newBooks.add(save.books![i]);
+                                      newBooks.add(save[idx!].books![i]);
                                     }
                                   }
                                   setState(() {
-                                    save.books = newBooks;
+                                    save[idx!].books = newBooks;
                                   });
                                   writeSave();
                                   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MyHomePage()));
@@ -93,7 +102,7 @@ class ListBookPage extends State<ListBookPageSend>{
             )
         ],
       ),
-      body: ListView.builder(itemCount: save.books!.length, itemBuilder: (builder, idx){
+      body: ListView.builder(itemCount: save[idx!].books!.length, itemBuilder: (builder, innerIdx){
         return SizedBox(
           height: 100, 
           child: 
@@ -103,30 +112,30 @@ class ListBookPage extends State<ListBookPageSend>{
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     fit: BoxFit.cover, 
-                    image: NetworkImage(save.books![idx].imgUrl!)
+                    image: NetworkImage(save[idx!].books![innerIdx].imgUrl!)
                   ),
                 ),
                 child: ListTile(
-                  selected: tileSelected[idx],
+                  selected: tileSelected[innerIdx],
                   onTap: (){
                     if(tileSelected.any((element) => element)) {
                       setState(() {
-                        tileSelected[idx] = tileSelected[idx]?false:true;
+                        tileSelected[innerIdx] = tileSelected[innerIdx]?false:true;
                       });
                     }
                     else{
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> BookDetailsPageSend(save.books![idx])));
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> BookDetailsPageSend(save[idx!].books![innerIdx])));
                     }
                   },
                   onLongPress: (){
                     setState(() {
-                      tileSelected[idx] = tileSelected[idx]?false:true;
+                      tileSelected[innerIdx] = tileSelected[innerIdx]?false:true;
                     });
                   },
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-                  leading: /*save.books![idx].imgUrl!=''?Image.network(save.books![idx].imgUrl!):*/Text(DateFormat("yyyy-MM-dd").format(save.books![idx].date!), style: getTextStyle(),),
-                  title: Text(save.books![idx].title!+", "+ save.books![idx].nOfPages.toString()+" pages ", style: getTextStyle(),),
-                  trailing: Text(save.books![idx].rating.toString()+" stars", style: getTextStyle(),),
+                  leading: /*save.books![idx].imgUrl!=''?Image.network(save.books![idx].imgUrl!):*/Text(DateFormat("yyyy-MM-dd").format(save[idx!].books![innerIdx].date!), style: getTextStyle(),),
+                  title: Text(save[idx!].books![innerIdx].title!+", "+ save[idx!].books![innerIdx].nOfPages.toString()+" pages ", style: getTextStyle(),),
+                  trailing: Text(save[idx!].books![innerIdx].rating.toString()+" stars", style: getTextStyle(),),
                 ),
               ),
             )
