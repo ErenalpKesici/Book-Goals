@@ -10,8 +10,6 @@ class Book{
     title='';
     categories = List.empty(growable: true);
     authors = List.empty(growable: true);
-    date=DateTime.now();
-    datePublished=DateTime.now();
     nOfPages=0;
     rating=5;
     imgUrl = '';

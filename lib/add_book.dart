@@ -47,7 +47,7 @@ class AddBookPage extends State<AddBookPageSend>{
           authors.add(auth);
         }
       }
-      DateTime datePublished = DateTime.now();
+      DateTime? datePublished;
       if(volumeInfo['publishedDate'] != null){
         if(int.tryParse(volumeInfo['publishedDate']) != null){
           List? date = volumeInfo['publishedDate'].split('-');
@@ -60,12 +60,63 @@ class AddBookPage extends State<AddBookPageSend>{
           else {
             datePublished = DateTime(int.parse(date[0]));
           }
+          print(volumeInfo['title']+" " + datePublished.toString());
         }
       }
       Book book = Book(title: volumeInfo['title'], categories: categories, authors: authors, date: DateTime.now(), nOfPages: volumeInfo['pageCount'], rating: 5, datePublished: datePublished, imgUrl: volumeInfo['imageLinks']==null?'':volumeInfo['imageLinks']['thumbnail']);
        ret.add(book);
     }
     return ret;
+  }
+  Widget getStars(){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 128, 16, 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          FittedBox(
+            child: IconButton(
+              onPressed: (){
+                setState(() {
+                  setStarColors(0);
+                });
+            }, color: starColors[0], icon: const Icon(Icons.star),),
+          ),
+          FittedBox(
+            child: IconButton(
+              onPressed: (){
+                setState(() {
+                  setStarColors(1);
+                });
+            }, color: starColors[1], icon: Icon(Icons.star),),
+          ),
+          FittedBox(
+            child: IconButton(
+              onPressed: (){
+                setState(() {
+                  setStarColors(2);
+                });
+            }, color: starColors[2], icon: Icon(Icons.star),),
+          ),
+          FittedBox(
+            child: IconButton(
+              onPressed: (){
+                setState(() {
+                  setStarColors(3);
+                });
+            }, color: starColors[3], icon: Icon(Icons.star),),
+          ),
+          FittedBox(
+            child: IconButton(
+              onPressed: (){
+                setState(() {
+                  setStarColors(4);
+                });
+            }, color: starColors[4], icon: Icon(Icons.star),),
+          ),
+        ],
+      ),
+    );
   }
   void setStarColors(int idx){
     for(int i=0;i<5;i++){
@@ -119,6 +170,7 @@ class AddBookPage extends State<AddBookPageSend>{
                   },
                 )
               ),
+              getStars(),
               // Padding(
               //   padding: const EdgeInsets.all(8.0),
               //   child: TextField(
@@ -127,54 +179,6 @@ class AddBookPage extends State<AddBookPageSend>{
               //     keyboardType: TextInputType.number,
               //   ),
               // ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 128, 16, 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FittedBox(
-                      child: IconButton(
-                        onPressed: (){
-                          setState(() {
-                            setStarColors(0);
-                          });
-                      }, color: starColors[0], icon: const Icon(Icons.star),),
-                    ),
-                    FittedBox(
-                      child: IconButton(
-                        onPressed: (){
-                          setState(() {
-                            setStarColors(1);
-                          });
-                      }, color: starColors[1], icon: Icon(Icons.star),),
-                    ),
-                    FittedBox(
-                      child: IconButton(
-                        onPressed: (){
-                          setState(() {
-                            setStarColors(2);
-                          });
-                      }, color: starColors[2], icon: Icon(Icons.star),),
-                    ),
-                    FittedBox(
-                      child: IconButton(
-                        onPressed: (){
-                          setState(() {
-                            setStarColors(3);
-                          });
-                      }, color: starColors[3], icon: Icon(Icons.star),),
-                    ),
-                    FittedBox(
-                      child: IconButton(
-                        onPressed: (){
-                          setState(() {
-                            setStarColors(4);
-                          });
-                      }, color: starColors[4], icon: Icon(Icons.star),),
-                    ),
-                  ],
-                ),
-              ),
               SizedBox(height: MediaQuery.of(context).size.height/10,),
               ElevatedButton.icon(onPressed: () async {
                 if(bookSelected.title == ''){

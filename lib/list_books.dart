@@ -124,7 +124,7 @@ class ListBookPage extends State<ListBookPageSend>{
                       });
                     }
                     else{
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> BookDetailsPageSend(save[idx!].books![innerIdx])));
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> BookDetailsPageSend(idx!, innerIdx)));
                     }
                   },
                   onLongPress: (){
@@ -134,8 +134,8 @@ class ListBookPage extends State<ListBookPageSend>{
                   },
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                   leading: /*save.books![idx].imgUrl!=''?Image.network(save.books![idx].imgUrl!):*/Text(DateFormat("yyyy-MM-dd").format(save[idx!].books![innerIdx].date!), style: getTextStyle(),),
-                  title: Text(save[idx!].books![innerIdx].title!+", "+ save[idx!].books![innerIdx].nOfPages.toString()+" pages ", style: getTextStyle(),),
-                  trailing: Text(save[idx!].books![innerIdx].rating.toString()+" stars", style: getTextStyle(),),
+                  title: Text(save[idx!].books![innerIdx].title!, style: getTextStyle(),),
+                  trailing: Text(save[idx!].books![innerIdx].nOfPages.toString() + " pages ", style: getTextStyle(),),
                 ),
               ),
             )

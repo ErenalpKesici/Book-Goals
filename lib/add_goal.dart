@@ -87,11 +87,16 @@ class AddGoalPage extends State<AddGoalPageSend>{
           ),
           SizedBox(height: MediaQuery.of(context).size.height/10,),
           ElevatedButton.icon(onPressed: () async {
-            if(save.last.goalBooks == 0){   
-              save.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.last.goalDurationType, books: save.last.books, dateStart: DateTime.now(), dateEnd: DateTime.now().add(Duration(days: int.parse(tecGoalDuration!.text) * multiplierInDays(goalDurationType!))));
+            if(tecGoalBooks!.text == '' || tecGoalDuration!.text == ''){
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text('Please enter all fields.')));
             }
-            else {
-              save.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.last.goalDurationType, books: save.last.books);
+            else{
+              if(save.last.goalBooks == 0){   
+                save.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.last.goalDurationType, books: save.last.books, dateStart: DateTime.now(), dateEnd: DateTime.now().add(Duration(days: int.parse(tecGoalDuration!.text) * multiplierInDays(goalDurationType!))));
+              }
+              else {
+                save.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.last.goalDurationType, books: save.last.books);
+              }
             }
             writeSave();
             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));

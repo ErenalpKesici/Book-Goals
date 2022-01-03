@@ -53,10 +53,11 @@ class BackupRestorePage extends State<BackupRestorePageSend>{
                     try{
                       String json = doc.get('save');
                       await File(externalDir!.path + "/Save.json").writeAsString(json);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Successfully restored.')));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).backgroundColor, content: Text('Successfully restored from '  + user!.email!)));
+                      update =true;
                       Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MyHomePage()));
                     }catch(e){
-                      print(e);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).backgroundColor, content: Text('Error from account: '  + user!.email!+" - " + e.toString())));
                     }
                   },
                   child: const Text("Restore"),
@@ -68,7 +69,7 @@ class BackupRestorePage extends State<BackupRestorePageSend>{
                     onPressed: () async {
                       final externalDir = await getExternalStorageDirectory();
                       FirebaseFirestore.instance.collection('Users').doc(user!.email).update({'save': (await File(externalDir!.path+"/Save.json").readAsString()).toString()});
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Successfully backed up.')));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).backgroundColor, content: Text('Successfully backed up to ' + user!.email!)));
                         Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MyHomePage()));
                     },
                     child: const Text("Backup")

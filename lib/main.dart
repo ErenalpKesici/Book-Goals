@@ -8,7 +8,6 @@ import 'package:book_goals/settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +18,7 @@ import 'old_goals.dart';
 
 List<Settings> save = List.empty(growable: true);
 int bookRequiredForGoal = 0;
+bool update = false;
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -38,8 +38,9 @@ int multiplierInDays(String type){
 }
 int _findBookFrequency(){
   int daysTotal = save.last.goalDuration! * multiplierInDays(save.last.goalDurationType!);
-  if(save.last.goalBooks! - save.last.books!.length == 0) bookRequiredForGoal = -1;
-  else {
+  if(save.last.goalBooks! - save.last.books!.length == 0) {
+    bookRequiredForGoal = -1;
+  } else {
     bookRequiredForGoal = (daysTotal/(save.last.goalBooks! - save.last.books!.length)).ceil();
   }
   return bookRequiredForGoal;
@@ -91,7 +92,9 @@ Settings readForEach(Map<String, dynamic> saveRead){
                   bookToAdd.date = DateTime.parse(value);
                   break;
                 case("datePublished"):
-                  bookToAdd.datePublished = DateTime.parse(value);
+                  if(value != 'null') {
+                    bookToAdd.datePublished = DateTime.parse(value);
+                  }
                   break;
                 case("nOfPages"):
                   bookToAdd.nOfPages = value;
@@ -145,7 +148,12 @@ Future<bool> readSave(BuildContext context)async{
         });
       });
     }
-    return true;
+    if(update){
+      update = false;
+    }
+    else {
+      return true;
+    }
   }
   print("READ " + save.toString());
   final externalDir = await getExternalStorageDirectory();
@@ -171,7 +179,10 @@ Future<bool> readSave(BuildContext context)async{
   else{
     await File(externalDir.path +'/Save.json').create();
   }
+  if(save.isNotEmpty)
   return false;
+  else
+  return true;
 }
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -227,7 +238,11 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: Drawer(
         child: ListView(
           children: [
-            Container(height: 200,),
+            const DrawerHeader(
+                child: Image(image: AssetImage('assets/logo.png'),
+                fit: BoxFit.fitHeight,
+              )
+            ),
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text("Home Page", textAlign: TextAlign.center,),
