@@ -107,7 +107,7 @@ class InitialPage extends State<InitialPageSend>{
                   FirebaseFirestore.instance.collection('Users').doc(googleAccount!.email).set({'email': googleAccount!.email, 'name': googleAccount!.displayName, 'password': googleAccount!.id});  
                   ScaffoldMessenger.of(context).showSnackBar( SnackBar(content: Text('welcome'.toString() + googleAccount!.displayName!)));
                 }
-              }, icon: Icon(Icons.one_k), label: Text("Continue with Google".toString(), style: TextStyle( color: Colors.black))),
+              }, icon: Image.asset("assets/google.png", width: 16,), label: Text("Continue with Google".toString(), style: TextStyle( color: Colors.black))),
               SizedBox(height: 50,),
               ElevatedButton.icon(onPressed: ()async{ 
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) =>RegisterPageSend()));

@@ -20,12 +20,12 @@ class AddGoalPage extends State<AddGoalPageSend>{
   String? goalDurationType = 'Day(s)';
   @override
   void initState() {
-    if(save.isEmpty){
-      save.add(Settings.empty());
+    if(data.goals.isEmpty){
+      data.goals.add(Settings.empty());
     }
-    tecGoalBooks!.text = save.last.goalBooks != 0?save.last.goalBooks.toString():''; 
-    tecGoalDuration!.text = save.last.goalDuration != 0?save.last.goalDuration.toString():'';
-    goalDurationType = save.last.goalDurationType==''?'Day(s)':save.last.goalDurationType;
+    tecGoalBooks!.text = data.goals.last.goalBooks != 0?data.goals.last.goalBooks.toString():''; 
+    tecGoalDuration!.text = data.goals.last.goalDuration != 0?data.goals.last.goalDuration.toString():'';
+    goalDurationType = data.goals.last.goalDurationType==''?'Day(s)':data.goals.last.goalDurationType;
     super.initState();
   }
   @override
@@ -34,8 +34,8 @@ class AddGoalPage extends State<AddGoalPageSend>{
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
             child: Text("I want to read", style: TextStyle(fontSize: 16),)
           ),
           Padding(
@@ -90,14 +90,7 @@ class AddGoalPage extends State<AddGoalPageSend>{
             if(tecGoalBooks!.text == '' || tecGoalDuration!.text == ''){
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text('Please enter all fields.')));
             }
-            else{
-              if(save.last.goalBooks == 0){   
-                save.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.last.goalDurationType, books: save.last.books, dateStart: DateTime.now(), dateEnd: DateTime.now().add(Duration(days: int.parse(tecGoalDuration!.text) * multiplierInDays(goalDurationType!))));
-              }
-              else {
-                save.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):save.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):save.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:save.last.goalDurationType, books: save.last.books);
-              }
-            }
+            data.goals.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):data.goals.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):data.goals.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:data.goals.last.goalDurationType, books: data.goals.last.books, dateStart: DateTime.now(), dateEnd: DateTime.now().add(Duration(days: int.parse(tecGoalDuration!.text) * multiplierInDays(goalDurationType!))));
             writeSave();
             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
           }, icon: const Icon(Icons.task_alt_rounded), label: const Text("Save"))

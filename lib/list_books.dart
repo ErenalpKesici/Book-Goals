@@ -39,7 +39,7 @@ class ListBookPage extends State<ListBookPageSend>{
   @override
   void initState() {
     print(idx);
-    tileSelected = List.filled(save[idx!].books!.length, false);
+    tileSelected = List.filled(data.goals[idx!].books!.length, false);
     super.initState();
   }
   @override
@@ -54,7 +54,7 @@ class ListBookPage extends State<ListBookPageSend>{
                 IconButton(icon: const Icon(Icons.select_all), 
                   onPressed: (){
                     setState(() {
-                      tileSelected = List.filled(save[idx!].books!.length, tileSelected.every((element) => element)?false:true);
+                      tileSelected = List.filled(data.goals[idx!].books!.length, tileSelected.every((element) => element)?false:true);
                     });
                   },
                 ),
@@ -78,13 +78,13 @@ class ListBookPage extends State<ListBookPageSend>{
                               ElevatedButton(
                                 onPressed: (){
                                   List<Book> newBooks = List.empty(growable: true);
-                                  for(int i=0;i<save[idx!].books!.length;i++){
+                                  for(int i=0;i<data.goals[idx!].books!.length;i++){
                                     if(!tileSelected[i]){
-                                      newBooks.add(save[idx!].books![i]);
+                                      newBooks.add(data.goals[idx!].books![i]);
                                     }
                                   }
                                   setState(() {
-                                    save[idx!].books = newBooks;
+                                    data.goals[idx!].books = newBooks;
                                   });
                                   writeSave();
                                   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>MyHomePage()));
@@ -102,7 +102,7 @@ class ListBookPage extends State<ListBookPageSend>{
             )
         ],
       ),
-      body: ListView.builder(itemCount: save[idx!].books!.length, itemBuilder: (builder, innerIdx){
+      body: ListView.builder(itemCount: data.goals[idx!].books!.length, itemBuilder: (builder, innerIdx){
         return SizedBox(
           height: 100, 
           child: 
@@ -112,10 +112,16 @@ class ListBookPage extends State<ListBookPageSend>{
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     fit: BoxFit.cover, 
-                    image: NetworkImage(save[idx!].books![innerIdx].imgUrl!)
+                    image: NetworkImage(data.goals[idx!].books![innerIdx].imgUrl!)
                   ),
                 ),
-                child: ListTile(
+                child:  ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                  leading: /*data.books![idx].imgUrl!=''?Image.network(data.books![idx].imgUrl!):*/Text(DateFormat("yyyy-MM-dd").format(data.goals[idx!].books![innerIdx].date!), style: getTextStyle(),),
+                  title: Text(data.goals[idx!].books![innerIdx].title!, style: getTextStyle(),),
+                  subtitle: Text(data.goals[idx!].books![innerIdx].authors != null ? data.goals[idx!].books![innerIdx].authors!.first:''),
+                  trailing: Text(data.goals[idx!].books![innerIdx].nOfPages.toString() + " pages ", style: getTextStyle(),),
+                   isThreeLine: true,
                   selected: tileSelected[innerIdx],
                   onTap: (){
                     if(tileSelected.any((element) => element)) {
@@ -132,10 +138,6 @@ class ListBookPage extends State<ListBookPageSend>{
                       tileSelected[innerIdx] = tileSelected[innerIdx]?false:true;
                     });
                   },
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-                  leading: /*save.books![idx].imgUrl!=''?Image.network(save.books![idx].imgUrl!):*/Text(DateFormat("yyyy-MM-dd").format(save[idx!].books![innerIdx].date!), style: getTextStyle(),),
-                  title: Text(save[idx!].books![innerIdx].title!, style: getTextStyle(),),
-                  trailing: Text(save[idx!].books![innerIdx].nOfPages.toString() + " pages ", style: getTextStyle(),),
                 ),
               ),
             )

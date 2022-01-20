@@ -6,9 +6,8 @@ import 'package:book_goals/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
-
-import 'book.dart';
 import 'helper_functions.dart';
+import 'book.dart';
 
 class AddBookPageSend extends StatefulWidget{
   const AddBookPageSend({Key? key}) : super(key: key);
@@ -24,50 +23,7 @@ class AddBookPage extends State<AddBookPageSend>{
   List<Color> starColors = List.filled(5, Colors.yellow);
   Book bookSelected = Book.empty();
   List<Book>? books;
-  Future<List<Book>> _getTitles(String query)async{ 
-    Response r = await get(Uri.parse('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ'));
-    // print('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ');
-    Map<String, dynamic> bookResults =  jsonDecode(r.body);
-    if(bookResults['totalItems'] < 1)return List.empty();
-    List<Book> ret = List.empty(growable: true);
-    List<dynamic> items = bookResults['items'];
-    for(Map<String, dynamic> item in items){
-      Map<String, dynamic> volumeInfo = item['volumeInfo'];
-      List? cats = volumeInfo['categories'];
-      List<String> categories = List.empty(growable: true);
-      List? auths = volumeInfo['authors'];
-      List<String> authors = List.empty(growable: true);
-      if(cats != null){
-        for(var cat in cats){
-          categories.add(cat);
-        }
-      }
-      if(auths != null){
-        for(var auth in auths){
-          authors.add(auth);
-        }
-      }
-      DateTime? datePublished;
-      if(volumeInfo['publishedDate'] != null){
-        if(int.tryParse(volumeInfo['publishedDate']) != null){
-          List? date = volumeInfo['publishedDate'].split('-');
-          if(date!.length == 3) {
-            datePublished = DateTime(int.parse(date[0]), int.parse(date[1]), int.parse(date[2]));
-          } 
-          else if(date.length == 2){
-            datePublished = DateTime(int.parse(date[0]), int.parse(date[1]));
-          }
-          else {
-            datePublished = DateTime(int.parse(date[0]));
-          }
-          print(volumeInfo['title']+" " + datePublished.toString());
-        }
-      }
-      Book book = Book(title: volumeInfo['title'], categories: categories, authors: authors, date: DateTime.now(), nOfPages: volumeInfo['pageCount'], rating: 5, datePublished: datePublished, imgUrl: volumeInfo['imageLinks']==null?'':volumeInfo['imageLinks']['thumbnail']);
-       ret.add(book);
-    }
-    return ret;
-  }
+  
   Widget getStars(){
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 128, 16, 16),
@@ -158,7 +114,7 @@ class AddBookPage extends State<AddBookPageSend>{
                   },
                 optionsBuilder: (TextEditingValue textEditingValue) async{
                   bookSelected.title = textEditingValue.text;
-                  books = await _getTitles(textEditingValue.text);
+                  books = await getTitles(textEditingValue.text);
                   if(books!.isNotEmpty){
                     List<String> ret = List.empty(growable: true);
                     for(Book book in books!){
@@ -171,14 +127,6 @@ class AddBookPage extends State<AddBookPageSend>{
                 )
               ),
               getStars(),
-              // Padding(
-              //   padding: const EdgeInsets.all(8.0),
-              //   child: TextField(
-              //     decoration: InputDecoration(labelText: 'Number of Pages', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)) ),
-              //     controller: tecBookNOfPages,
-              //     keyboardType: TextInputType.number,
-              //   ),
-              // ),
               SizedBox(height: MediaQuery.of(context).size.height/10,),
               ElevatedButton.icon(onPressed: () async {
                 if(bookSelected.title == ''){
@@ -186,7 +134,8 @@ class AddBookPage extends State<AddBookPageSend>{
                 }
                 else{
                   bookSelected.rating = rating;
-                  save.last.books!.add(bookSelected);
+                  data.goals.last.books!.add(bookSelected);
+                  print(bookSelected.toString());
                   writeSave();
                   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
                 }

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:book_goals/AuthenticationWrapper.dart';
+import 'package:book_goals/preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,7 +21,7 @@ class SettingsPage extends State<SettingsPageSend>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Settings"), centerTitle: true,
+        title: const Text("Settings"), centerTitle: true,
       ),
       body: Center(
         child: Column(
@@ -28,9 +29,8 @@ class SettingsPage extends State<SettingsPageSend>{
           children: [
             ElevatedButton.icon(onPressed: () async{
               runApp(const MyApp());
-    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AuthenticationWrapper()));
-              // Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BackupRestorePageSend()));
-            }, icon: Icon(Icons.import_export), label: Text("Backup/Restore"))
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AuthenticationWrapper()));
+            }, icon: const Icon(Icons.import_export), label: const Text("Backup/Restore"))
           ],
         ),
       ),

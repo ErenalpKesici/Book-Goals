@@ -3,20 +3,23 @@ import 'dart:io';
 import 'package:book_goals/AuthenticationServices.dart';
 import 'package:book_goals/add_book.dart';
 import 'package:book_goals/book.dart';
+import 'package:book_goals/library.dart';
+import 'package:book_goals/search.dart';
 import 'package:book_goals/settings.dart';
 import 'package:book_goals/settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'add_goal.dart';
+import 'data.dart';
 import 'helper_functions.dart';
 import 'list_books.dart';
-import 'old_goals.dart';
 
-List<Settings> save = List.empty(growable: true);
+Data data = Data.empty();
 int bookRequiredForGoal = 0;
 bool update = false;
 void main() async{
@@ -37,116 +40,165 @@ int multiplierInDays(String type){
   }
 }
 int _findBookFrequency(){
-  int daysTotal = save.last.goalDuration! * multiplierInDays(save.last.goalDurationType!);
-  if(save.last.goalBooks! - save.last.books!.length == 0) {
+  int daysTotal = data.goals.last.goalDuration! * multiplierInDays(data.goals.last.goalDurationType!);
+  if(data.goals.last.goalBooks! - data.goals.last.books!.length == 0) {
     bookRequiredForGoal = -1;
   } else {
-    bookRequiredForGoal = (daysTotal/(save.last.goalBooks! - save.last.books!.length)).ceil();
+    bookRequiredForGoal = (daysTotal/(data.goals.last.goalBooks! - data.goals.last.books!.length)).ceil();
   }
   return bookRequiredForGoal;
-  } 
-Settings readForEach(Map<String, dynamic> saveRead){
-  Settings currSave = Settings.empty();
+} 
+Book readBook(Map<String, dynamic> book){
+  Book bookToAdd = Book.empty();
+  book.forEach((key, value) {
+    switch(key){
+      case("id"):
+        bookToAdd.id = value;
+        break;
+      case("title"):
+        bookToAdd.title = value;
+        break;
+      case("categories"):
+        String catsDecoded = value.toString().substring(1, value.toString().length - 1);
+        List<String> cats = catsDecoded.split(', ');
+        for(String prsn in cats){
+          bookToAdd.categories!.add(prsn);
+        }
+        break;
+      case("authors"):
+        String authsDecoded = value.toString().substring(1, value.toString().length - 1);
+        List<String> auths = authsDecoded.split(', ');
+        for(String auth in auths){
+          bookToAdd.authors!.add(auth);
+        }
+        break;
+      case("date"):
+        bookToAdd.date = DateTime.parse(value);
+        break;
+      case("datePublished"):
+        if(value != 'null') {
+          bookToAdd.datePublished = DateTime.parse(value);
+        }
+        break;
+      case("nOfPages"):
+        bookToAdd.nOfPages = value;
+        break;
+      case("rating"):
+        bookToAdd.rating = value;
+        break;
+      case("imgUrl"):
+        bookToAdd.imgUrl = value;
+        break;
+    }
+  });
+  return bookToAdd;
+}
+Settings readGoal(Map<String, dynamic> saveRead){
+  Settings currGoal = Settings.empty();
   saveRead.forEach((key, value) {
-    if(value != 'null'){
+    if(value !='null') {
       switch(key){
         case("goalBooks"):
-          currSave.goalBooks = int.parse(value);        
+          currGoal.goalBooks = int.parse(value);        
           break;
         case("dateStart"):
-          currSave.dateStart = DateTime.parse(value);        
+          currGoal.dateStart = DateTime.parse(value);        
           break;
         case("dateEnd"):
-          currSave.dateEnd = DateTime.parse(value);        
+          currGoal.dateEnd = DateTime.parse(value);        
           break;
         case("goalDuration"):
-          currSave.goalDuration= int.parse(value);
+          currGoal.goalDuration= int.parse(value);
           break;
         case("goalDurationType"):
-          currSave.goalDurationType=value;
+          currGoal.goalDurationType=value;
           break;
         case("books"):
           List<dynamic> booksRead = value;
           for(Map<String, dynamic> book in booksRead){
-            Book bookToAdd = Book.empty();
-            book.forEach((key, value) {
-              switch(key){
-                case("title"):
-                  bookToAdd.title = value;
-                  break;
-                case("categories"):
-                  String catsDecoded = value.toString().substring(1, value.toString().length - 1);
-                  List<String> cats = catsDecoded.split(', ');
-                  for(String prsn in cats){
-                    bookToAdd.categories!.add(prsn);
-                  }
-                  break;
-                case("authors"):
-                  String authsDecoded = value.toString().substring(1, value.toString().length - 1);
-                  List<String> auths = authsDecoded.split(', ');
-                  for(String auth in auths){
-                    bookToAdd.authors!.add(auth);
-                  }
-                  break;
-                case("date"):
-                  bookToAdd.date = DateTime.parse(value);
-                  break;
-                case("datePublished"):
-                  if(value != 'null') {
-                    bookToAdd.datePublished = DateTime.parse(value);
-                  }
-                  break;
-                case("nOfPages"):
-                  bookToAdd.nOfPages = value;
-                  break;
-                case("rating"):
-                  bookToAdd.rating = value;
-                  break;
-                case("imgUrl"):
-                  bookToAdd.imgUrl = value;
-                  break;
-              }
-            });
-          currSave.books!.add(bookToAdd);
+            
+          currGoal.books!.add(readBook(book));
         }
       }
     }
   });
+  return currGoal;
+}
+Library readLibrary(Map<String, dynamic> saveRead){
+  Library currLib = Library.empty();
+  saveRead.forEach((key, value) {
+    switch(key){
+      case("book"):
+        currLib.book = readBook(value);
+        break;
+      case("message"):
+        currLib.message = value;
+        break;
+    }
+  });
+  return currLib;
+}
+Data readData(Map<String, dynamic> saveRead){
+  Data currSave = Data.empty(); 
+  saveRead.forEach((key, value) {
+    if(value != 'null'){
+      switch(key){
+        case("goals"):
+          List<dynamic> savesRead = value;
+          for(dynamic saveRead in savesRead){
+            currSave.goals.add(readGoal(saveRead));
+          }
+          break;
+        case("libs"):
+          List<dynamic> savesRead = value;
+          for(dynamic saveRead in savesRead){
+            currSave.libs.add(readLibrary(saveRead));
+          }
+          break;
+      } 
+    }
+  });
   return currSave;
 }  
-Future<bool> readSave(BuildContext context)async{
-  if(save.isNotEmpty) {
-    if(save.last.goalBooks! > 0 && (save.last.books!.length/save.last.goalBooks!*100).ceil() > 99){
-      SchedulerBinding.instance?.addPostFrameCallback((_) async{
-        return await showDialog(context: context, builder: (context){
-          return AlertDialog(
-            title: const Text("You have reached your current goal!", textAlign: TextAlign.center,),
-            content: const Text("Would you like to add a new goal?", textAlign: TextAlign.center,),
-            actions: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: (){
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text("No"),
-                  ),
-                  const SizedBox(width: 5,),
-                  ElevatedButton(
-                    onPressed: (){
-                      save.add(Settings.empty());
-                      writeSave();
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
-                    },
-                    child: const Text("Yes")
-                  ),
-                ],
-              )
+Future<void> alertUser(BuildContext context, String title)async{
+  SchedulerBinding.instance?.addPostFrameCallback((_) async{
+    return await showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: Text(title, textAlign: TextAlign.center,),
+        content:  const Text("Would you like to add a new goals?", textAlign: TextAlign.center,),
+        actions: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: (){
+                  Navigator.of(context).pop();
+                },
+                child: const Text("No"),
+              ),
+              const SizedBox(width: 5,),
+              ElevatedButton(
+                onPressed: (){
+                  data.goals.add(Settings.empty());
+                  writeSave();
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+                },
+                child: const Text("Yes")
+              ),
             ],
-          );
-        });
-      });
+          )
+        ],
+      );
+    });
+  });
+}
+Future<bool> readSave(BuildContext context)async{
+  if(data.goals.isNotEmpty && data.goals.last.goalBooks! > 0 && data.goals.last.dateEnd != null) {
+    if(data.goals.last.dateEnd!.compareTo(DateTime.now()) == -1 && data.goals.last.books!.length < data.goals.last.goalBooks!){
+      await alertUser(context, "Your goals has expired on " + DateFormat('yyyy-MM-dd').format(data.goals.last.dateEnd!));
+    }
+    else if((data.goals.last.books!.length/data.goals.last.goalBooks!*100).ceil() > 99){
+      await alertUser(context, "You have reached your current goals!");
     }
     if(update){
       update = false;
@@ -155,34 +207,32 @@ Future<bool> readSave(BuildContext context)async{
       return true;
     }
   }
-  print("READ " + save.toString());
+  print("READ " + data.toString());
   final externalDir = await getExternalStorageDirectory();
   if(await File(externalDir!.path +'/Save.json').exists() && await File(externalDir.path+"/Save.json").readAsString() != ""){
-    print(await File(externalDir.path+"/Save.json").readAsString());
-      //Old version save merge:
-    if(jsonDecode(await File(externalDir.path+"/Save.json").readAsString()).runtimeType.toString() == '_InternalLinkedHashMap<String, dynamic>'){
-      Map<String, dynamic> saveRead = jsonDecode(await File(externalDir.path+"/Save.json").readAsString());
-      save.add(readForEach(saveRead));
+    //Transfer old save to new version
+    if(jsonDecode(await File(externalDir.path+"/Save.json").readAsString()).runtimeType.toString() == "List<dynamic>"){
+      List<dynamic> oldSaveRead = jsonDecode(await File(externalDir.path+"/Save.json").readAsString());
+      for(dynamic goal in oldSaveRead){
+        data.goals.add(readGoal(goal));
+      }
       writeSave();
     }
     else{
-      List<dynamic> savesRead = jsonDecode(await File(externalDir.path+"/Save.json").readAsString());
-      for(dynamic saveRead in savesRead){
-        save.add(readForEach(saveRead));
-      }
+      Map<String, dynamic> saveRead = jsonDecode(await File(externalDir.path+"/Save.json").readAsString());
+      data = readData(saveRead);
+      bookRequiredForGoal = _findBookFrequency();
     }
-    bookRequiredForGoal = _findBookFrequency();
-    print(save.length);
-    print(save.toString());
-    if(save.last.goalBooks! > 0 && (save.last.books!.length/save.last.goalBooks!*100).ceil() > 99)await readSave(context);
+    if(data.goals.last.goalBooks! > 0) await readSave(context);
   }
   else{
     await File(externalDir.path +'/Save.json').create();
   }
-  if(save.isNotEmpty)
-  return false;
-  else
-  return true;
+  if(data.goals.isNotEmpty) {
+    return false;
+  } else {
+    return true;
+  }
 }
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -202,7 +252,9 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           brightness: Brightness.dark,
           primarySwatch: Colors.lightBlue,
+          primaryColor: Colors.lightBlue,
           appBarTheme: AppBarTheme(color: Colors.lightBlue[300]),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(backgroundColor: Colors.blueGrey),
           colorScheme: ColorScheme.fromSwatch().copyWith(brightness: Brightness.dark, secondary: Colors.teal[200],)
         ),
         home: const MyHomePage(),
@@ -217,74 +269,36 @@ class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
-
 class _MyHomePageState extends State<MyHomePage> {
+  int currentNavIdx = 0;
+  @override
+  void initState() {
+    tryBackup();
+    super.initState();
+  }
+  // bool goalAddable = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentNavIdx,
+        onTap: (int idx){
+          if(currentNavIdx != idx) {
+            setState(() {
+              updateNav(idx, currentNavIdx, context);
+            });
+          }
+        },
+        items: getNavs(),
+      ),
       appBar: AppBar(
         title: const Text('Book Goals'),
         actions: [
-          if(save.isNotEmpty && save.last.goalBooks! < 1)
-            ElevatedButton.icon(
-              onPressed: (){
-                Navigator.of(context).pop();
-              },
-              icon: Icon(Icons.cancel),
-              label: Text('Cancel adding goal'),
-            ),
+          // if(goalAddable)
+          //   IconButton(icon: const Icon(Icons.refresh_outlined), onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddGoalPageSend()));},)
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(
-                child: Image(image: AssetImage('assets/logo.png'),
-                fit: BoxFit.fitHeight,
-              )
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text("Home Page", textAlign: TextAlign.center,),
-              onTap: (){
-                if(context.widget.toString() != "MyHomePage"){
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) =>MyHomePage()));
-                }
-                else {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text("Previous Goals", textAlign: TextAlign.center,),
-              onTap: (){
-                if(context.widget.toString() != "OldGoalsPageSend"){
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) =>OldGoalsPageSend()));
-                }
-                else {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text("Settings", textAlign: TextAlign.center,),
-              onTap: (){
-                if(context.widget.toString() != "SettingsPageSend"){
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) =>SettingsPageSend()));
-                }
-                else {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: getDrawer(context),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -294,7 +308,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 future: readSave(context),
                 builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                   if(snapshot.hasData){
-                    if((!snapshot.data && save.last.goalBooks! > 0) || (save.isNotEmpty && save.last.goalBooks! > 0)){
+                    if((!snapshot.data && data.goals.last.goalBooks! > 0) || (data.goals.isNotEmpty && data.goals.last.goalBooks! > 0)){
                       return Column(
                         children: [
                           Row(
@@ -302,7 +316,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: [
                               GestureDetector(
                                 onTap: (){
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ListBookPageSend(idx: save.length - 1)));
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ListBookPageSend(idx: data.goals.length - 1)));
                                 },
                                 child: Stack(
                                   children: [
@@ -310,7 +324,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       width: 200, height: 200,
                                       child: CircularProgressIndicator(
                                         color: Theme.of(context).colorScheme.secondary,
-                                        value: save.last.books!.length/save.last.goalBooks!,
+                                        value: data.goals.last.books!.length/data.goals.last.goalBooks!,
                                       ),
                                     ),
                                     Positioned(
@@ -320,10 +334,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
                                           child: Column(
                                             children: [
-                                              Text(save.last.books!.length.toString()+"/"+save.last.goalBooks!.toString(), textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
+                                              Text(data.goals.last.books!.length.toString()+"/"+data.goals.last.goalBooks!.toString(), textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
                                               Padding(
                                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                                child: Text((save.last.books!.length/save.last.goalBooks!*100).ceil().toString()+"%", textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
+                                                child: Text((data.goals.last.books!.length/data.goals.last.goalBooks!*100).ceil().toString()+"%", textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
                                               ),
                                               const Padding(
                                                 padding: EdgeInsets.fromLTRB(16, 16, 16, 0),

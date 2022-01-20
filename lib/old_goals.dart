@@ -19,31 +19,32 @@ class OldGoalsPage extends State<OldGoalsPageSend>{
       ),
       body: 
         ListView.builder(
-          itemCount: save.length,
+          itemCount: data.goals.length,
           itemBuilder: (context, idx){
             List<String> titles = List.empty(growable: true);
-            for(int i=0;i<save[save.length - 1 - idx].books!.length;i++){
-              titles.add(save[save.length - 1 - idx].books![i].title!);
+            for(int i=0;i<data.goals[data.goals.length - 1 - idx].books!.length;i++){
+              titles.add(data.goals[data.goals.length - 1 - idx].books![i].title!);
             }
             String dates = '';
-            if(save[save.length - 1 - idx].dateStart!=null){
-              dates = DateFormat('yyyy-MM-dd').format(save[save.length - 1 - idx].dateStart!);
+            if(data.goals[data.goals.length - 1 - idx].dateStart!=null){
+              dates = DateFormat('yyyy-MM-dd').format(data.goals[data.goals.length - 1 - idx].dateStart!);
             }
-            Icon? iconStatus = Icon(Icons.not_interested);
-            if(save[save.length - 1 - idx].dateEnd!=null){
-              dates+= ' - ' +DateFormat('yyyy-MM-dd').format(save[save.length - 1 - idx].dateEnd!);
-              if(save[save.length - 1 - idx].dateEnd!.compareTo(DateTime.now()) > -1) {
+            Icon? iconStatus = const Icon(Icons.not_interested);
+            if(data.goals[data.goals.length - 1 - idx].dateEnd!=null){
+              dates+= ' - ' +DateFormat('yyyy-MM-dd').format(data.goals[data.goals.length - 1 - idx].dateEnd!);
+              if(data.goals[data.goals.length - 1 - idx].books!.length < data.goals[data.goals.length - 1 - idx].goalBooks! && data.goals[data.goals.length - 1 - idx].dateEnd!.compareTo(DateTime.now()) > -1) {
                 iconStatus = null;
               } 
-              else if(save[save.length - 1 - idx].dateEnd!.compareTo(DateTime.now()) < 0 && save[save.length - 1 - idx].goalBooks! <= save[save.length - 1 - idx].books!.length){
-                  iconStatus = Icon(Icons.done_outline_rounded);
+              else if(data.goals[data.goals.length - 1 - idx].goalBooks! <= data.goals[data.goals.length - 1 - idx].books!.length){
+                  iconStatus = const Icon(Icons.done_outline_rounded, color: Colors.green,);
               }
             }
             return Card(elevation: 1, child: 
               ListTile(
                 leading: Text(dates),
-                title: Text(titles.isEmpty?'No books read for this goal.':titles.toString(), textAlign: TextAlign.center,),
-                trailing: Container(width:  20, child: iconStatus??const LinearProgressIndicator()),
+                title: Text(titles.isEmpty?'No books have been read for this goals.':titles.toString(), textAlign: TextAlign.center,),
+                trailing: SizedBox(width:  20, child: iconStatus??const LinearProgressIndicator()),
+                iconColor: Colors.red,
               ));
           },
         ),
