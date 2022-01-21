@@ -4,9 +4,7 @@ import 'package:book_goals/AuthenticationServices.dart';
 import 'package:book_goals/add_book.dart';
 import 'package:book_goals/book.dart';
 import 'package:book_goals/library.dart';
-import 'package:book_goals/search.dart';
 import 'package:book_goals/settings.dart';
-import 'package:book_goals/settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +37,7 @@ int multiplierInDays(String type){
       return 0;
   }
 }
-int _findBookFrequency(){
+int findBookFrequency(){
   int daysTotal = data.goals.last.goalDuration! * multiplierInDays(data.goals.last.goalDurationType!);
   if(data.goals.last.goalBooks! - data.goals.last.books!.length == 0) {
     bookRequiredForGoal = -1;
@@ -51,44 +49,46 @@ int _findBookFrequency(){
 Book readBook(Map<String, dynamic> book){
   Book bookToAdd = Book.empty();
   book.forEach((key, value) {
-    switch(key){
-      case("id"):
-        bookToAdd.id = value;
-        break;
-      case("title"):
-        bookToAdd.title = value;
-        break;
-      case("categories"):
-        String catsDecoded = value.toString().substring(1, value.toString().length - 1);
-        List<String> cats = catsDecoded.split(', ');
-        for(String prsn in cats){
-          bookToAdd.categories!.add(prsn);
-        }
-        break;
-      case("authors"):
-        String authsDecoded = value.toString().substring(1, value.toString().length - 1);
-        List<String> auths = authsDecoded.split(', ');
-        for(String auth in auths){
-          bookToAdd.authors!.add(auth);
-        }
-        break;
-      case("date"):
-        bookToAdd.date = DateTime.parse(value);
-        break;
-      case("datePublished"):
-        if(value != 'null') {
-          bookToAdd.datePublished = DateTime.parse(value);
-        }
-        break;
-      case("nOfPages"):
-        bookToAdd.nOfPages = value;
-        break;
-      case("rating"):
-        bookToAdd.rating = value;
-        break;
-      case("imgUrl"):
-        bookToAdd.imgUrl = value;
-        break;
+    if(value != 'null'){
+      switch(key){
+        case("id"):
+          bookToAdd.id = value;
+          break;
+        case("title"):
+          bookToAdd.title = value;
+          break;
+        case("categories"):
+          String catsDecoded = value.toString().substring(1, value.toString().length - 1);
+          List<String> cats = catsDecoded.split(', ');
+          for(String prsn in cats){
+            bookToAdd.categories!.add(prsn);
+          }
+          break;
+        case("authors"):
+          String authsDecoded = value.toString().substring(1, value.toString().length - 1);
+          List<String> auths = authsDecoded.split(', ');
+          for(String auth in auths){
+            bookToAdd.authors!.add(auth);
+          }
+          break;
+        case("date"):
+          bookToAdd.date = DateTime.parse(value);
+          break;
+        case("datePublished"):
+          if(value != 'null') {
+            bookToAdd.datePublished = DateTime.parse(value);
+          }
+          break;
+        case("nOfPages"):
+          bookToAdd.nOfPages = value;
+          break;
+        case("rating"):
+          bookToAdd.rating = value;
+          break;
+        case("imgUrl"):
+          bookToAdd.imgUrl = value;
+          break;
+      }
     }
   });
   return bookToAdd;
@@ -221,7 +221,7 @@ Future<bool> readSave(BuildContext context)async{
     else{
       Map<String, dynamic> saveRead = jsonDecode(await File(externalDir.path+"/Save.json").readAsString());
       data = readData(saveRead);
-      bookRequiredForGoal = _findBookFrequency();
+      bookRequiredForGoal = findBookFrequency();
     }
     if(data.goals.last.goalBooks! > 0) await readSave(context);
   }
@@ -229,6 +229,10 @@ Future<bool> readSave(BuildContext context)async{
     await File(externalDir.path +'/Save.json').create();
   }
   if(data.goals.isNotEmpty) {
+    //IF ID DIDNT GET INSERTED
+    if(data.goals.any((element) => element.books!.any((element) => element.id == ''))){
+      await updateIdOfBooks();
+    }
     return false;
   } else {
     return true;
@@ -274,9 +278,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     tryBackup();
+    if(data.goals.isNotEmpty){
+      bookRequiredForGoal = findBookFrequency();
+    }
     super.initState();
   }
-  // bool goalAddable = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -293,10 +299,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       appBar: AppBar(
         title: const Text('Book Goals'),
-        actions: [
-          // if(goalAddable)
-          //   IconButton(icon: const Icon(Icons.refresh_outlined), onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddGoalPageSend()));},)
-        ],
       ),
       drawer: getDrawer(context),
       body: Center(
@@ -355,19 +357,20 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                           if(bookRequiredForGoal != -1)
                             Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(16.0),
                               child: Text("A book needs to be finished every " + bookRequiredForGoal.toString() + " day(s)."),
+                            ),            
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(primary: Theme.of(context).colorScheme.secondary),
+                                icon: const Icon(Icons.book),
+                                onPressed: () async{
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddBookPageSend()));
+                                  writeSave();
+                                }, label: const Text('Add a Book',),
+                              ),
                             ),
-                            SizedBox(height: MediaQuery.of(context).size.height/8,),            
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(primary: Theme.of(context).colorScheme.secondary),
-                              icon: const Icon(Icons.book),
-                              onPressed: () async{
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddBookPageSend()));
-                                writeSave();
-                              }, label: const Text('Add a Book',),
-                            ),
-                            SizedBox(height: MediaQuery.of(context).size.height/15,),
                             ElevatedButton.icon(
                               icon: const Icon(Icons.sports_score_rounded),
                               label: const Text('Modify the Goal',),
@@ -379,18 +382,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       );
                     }
                     else{
-                      return AddGoalPageSend();
+                      return const AddGoalPageSend();
                     }
                   }
-                  return Stack(
-                    children: const [
-                      SizedBox(
-                        width: 100,height: 100,
-                        child: LinearProgressIndicator(),
-                      ),
-                      Positioned(bottom: 10,left: 10,right: 10,top: 10, child: Text("Please Enter Goal and books.", textAlign: TextAlign.center,),)
-                    ],
-                  );
+                  return const CircularProgressIndicator();
                 },
               ),
             ],

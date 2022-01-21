@@ -114,7 +114,7 @@ class AddBookPage extends State<AddBookPageSend>{
                   },
                 optionsBuilder: (TextEditingValue textEditingValue) async{
                   bookSelected.title = textEditingValue.text;
-                  books = await getTitles(textEditingValue.text);
+                  books = await queryBooks(textEditingValue.text);
                   if(books!.isNotEmpty){
                     List<String> ret = List.empty(growable: true);
                     for(Book book in books!){

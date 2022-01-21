@@ -19,23 +19,6 @@ class ListBookPage extends State<ListBookPageSend>{
   int? idx;
   List<bool> tileSelected = List.empty();
   ListBookPage(this.idx);
-  TextStyle getTextStyle(){
-    return const TextStyle(
-      letterSpacing: 0.5,
-      shadows: <Shadow>[
-        Shadow(
-          offset: Offset(0.0, 0.0),
-          blurRadius: 10.0,
-          color: Colors.black,
-        ),
-        Shadow(
-          offset: Offset(0.0, 0.0),
-          blurRadius: 10.0,
-          color: Colors.black,
-        ),
-      ],
-    );
-  }
   @override
   void initState() {
     print(idx);
@@ -110,17 +93,10 @@ class ListBookPage extends State<ListBookPageSend>{
             child: 
               Container(
                 decoration: BoxDecoration(
-                  image: DecorationImage(
-                    fit: BoxFit.cover, 
-                    image: NetworkImage(data.goals[idx!].books![innerIdx].imgUrl!)
-                  ),
-                ),
+                  image: getDecorationImage(data.goals[idx!].books![innerIdx].imgUrl!)),
                 child:  ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-                  leading: /*data.books![idx].imgUrl!=''?Image.network(data.books![idx].imgUrl!):*/Text(DateFormat("yyyy-MM-dd").format(data.goals[idx!].books![innerIdx].date!), style: getTextStyle(),),
-                  title: Text(data.goals[idx!].books![innerIdx].title!, style: getTextStyle(),),
-                  subtitle: Text(data.goals[idx!].books![innerIdx].authors != null ? data.goals[idx!].books![innerIdx].authors!.first:''),
-                  trailing: Text(data.goals[idx!].books![innerIdx].nOfPages.toString() + " pages ", style: getTextStyle(),),
+                  title: Text(data.goals[idx!].books![innerIdx].title!, style: getCardTextStyle(),),
+                  subtitle: Text(data.goals[idx!].books![innerIdx].authors!.isNotEmpty ? data.goals[idx!].books![innerIdx].authors!.first:''),
                    isThreeLine: true,
                   selected: tileSelected[innerIdx],
                   onTap: (){

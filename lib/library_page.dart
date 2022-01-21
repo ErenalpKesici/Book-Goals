@@ -15,36 +15,43 @@ class LibraryPageSend extends StatefulWidget {
 }
 class LibraryPage extends State<LibraryPageSend>{
   List<Book> goalBooks = List.empty(growable: true);
+  ScrollController mainScrollController = ScrollController();
   Card getCard(int idx, Book book){
     return Card(
-      child: Slidable(
-        startActionPane: ActionPane(
-          motion: const StretchMotion(),
-          children: [
-             SlidableAction(
-              onPressed: (BuildContext context){
-                setState(() {
-                  data.libs.removeAt(idx);
-                });
-                writeSave();
-              },
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              icon: Icons.delete,
-              label: 'Delete',
-            ),
-          ],
+      child: Container(
+        decoration: BoxDecoration(
+          image: getDecorationImage(book.imgUrl!)
         ),
-        child: ListTile(
-          minVerticalPadding: 10,
-          isThreeLine: true,
-          title: Text(book.title!),
-          subtitle: Text(book.authors!.isNotEmpty==true?book.authors!.first:''),
-          onTap: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BookActionDetailsPageSend(book)));
-          },
+        child: Slidable(
+          startActionPane: ActionPane(
+            motion: const StretchMotion(),
+            children: [
+               SlidableAction(
+                onPressed: (BuildContext context){
+                  setState(() {
+                    data.libs.removeAt(idx);
+                  });
+                  writeSave();
+                },
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
+            ],
+          ),
+          child: ListTile(
+            minVerticalPadding: 10,
+            isThreeLine: true,
+            title: Text(book.title!, style: getCardTextStyle()),
+            subtitle: Text(book.authors!.isNotEmpty==true?book.authors!.first:'', style: getCardTextStyle()),
+            onTap: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BookActionDetailsPageSend(book)));
+            },
+          ),
         ),
-      ));
+      ),
+    );
   }
   @override
   void initState() {
@@ -56,6 +63,19 @@ class LibraryPage extends State<LibraryPageSend>{
       }
     }
     super.initState();
+  }
+  Widget getReadForGoals(){
+    return 
+      Flexible(
+        child: ListView.builder(
+          shrinkWrap: true,
+          controller: mainScrollController,
+          itemCount: goalBooks.length,
+          itemBuilder: (BuildContext context, int idx){
+            return getCard(idx, goalBooks[idx]);
+          },
+        ),
+      );
   }
   @override
   Widget build(BuildContext context) {
@@ -81,11 +101,28 @@ class LibraryPage extends State<LibraryPageSend>{
                   Expanded(
                     child: TabBarView(
                       children: [
-                        ListView.builder(
-                          itemCount: data.libs.length,
-                          itemBuilder: (BuildContext context, int idx){
-                            return getCard(idx, data.libs[idx].book!);
-                          }
+                        SingleChildScrollView(
+                          controller: mainScrollController,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  controller: mainScrollController,
+                                  itemCount: data.libs.length,
+                                  itemBuilder: (BuildContext context, int idx){
+                                    return getCard(idx, data.libs[idx].book!);
+                                  },
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text("Books read for set goals:"),
+                              ),
+                              getReadForGoals()
+                            ],
+                          ),
                         ),
                         ListView.builder(
                           itemCount: data.libs.length,
@@ -105,29 +142,31 @@ class LibraryPage extends State<LibraryPageSend>{
                             return Container();
                           },
                         ),
-                        Column(
-                          children: [
-                            Flexible(
-                              child: ListView.builder(
-                                itemCount: data.libs.length,
-                                itemBuilder: (BuildContext context, int idx){
-                                  if(data.libs[idx].message == "Read") {
-                                    return getCard(idx, data.libs[idx].book!);
-                                  }
-                                  return Container();
-                                },
+                        SingleChildScrollView(
+                          controller: mainScrollController,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  controller: mainScrollController,
+                                  itemCount: data.libs.length,
+                                  itemBuilder: (BuildContext context, int idx){
+                                    if(data.libs[idx].message == "Read") {
+                                      return getCard(idx, data.libs[idx].book!);
+                                    }
+                                    return Container();
+                                  },
+                                ),
                               ),
-                            ),
-                            const Text("Books read for set goals:"),
-                            Flexible(
-                              child: ListView.builder(
-                                itemCount: goalBooks.length,
-                                itemBuilder: (BuildContext context, int idx){
-                                  return getCard(idx, goalBooks[idx]);
-                                },
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text("Books read for set goals:"),
                               ),
-                            ),
-                          ],
+                              getReadForGoals()
+                            ],
+                          ),
                         ),
                       ],
                     ),

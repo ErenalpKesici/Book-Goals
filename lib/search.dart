@@ -22,7 +22,7 @@ class SearchPage extends State<SearchPageSend>{
   List<String> bookAction = List.empty();
   @override
   void initState() {
-    futureTitles = getTitles(tecQuery.text);
+    futureTitles = queryBooks(tecQuery.text);
     super.initState();
   }
   @override
@@ -54,7 +54,7 @@ class SearchPage extends State<SearchPageSend>{
                decoration: InputDecoration(labelText: 'Book Title', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)) ),
               onChanged: (String? value){
                 setState(() {
-                  futureTitles = getTitles(tecQuery.text);
+                  futureTitles = queryBooks(tecQuery.text);
                 });
               },
             ),

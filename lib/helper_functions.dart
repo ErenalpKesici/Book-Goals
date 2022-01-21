@@ -75,7 +75,43 @@ List<Book> filterDuplicates(List<Book> books){
   }
   return ret;
 }
-Future<List<Book>> getTitles(String query)async{ 
+TextStyle getCardTextStyle(){
+  return const TextStyle(
+    letterSpacing: 0.5,
+    shadows: <Shadow>[
+      Shadow(
+        offset: Offset(0.0, 0.0),
+        blurRadius: 10.0,
+        color: Colors.black,
+      ),
+      Shadow(
+        offset: Offset(0.0, 0.0),
+        blurRadius: 10.0,
+        color: Colors.black,
+      ),
+    ],
+  );
+}
+Future<String> getIdOfBook(String query) async{
+  Response r = await get(Uri.parse('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ'));
+  Map<String, dynamic> bookResults =  jsonDecode(r.body);
+  if(bookResults['totalItems'] < 1)return '';
+  List<Book> ret = List.empty(growable: true);
+  return bookResults['items'][0]['id'];
+}
+Future<void> updateIdOfBooks()async{
+  for(int i=0;i<data.goals.length;i++){
+    if(data.goals[i].books!=null){
+      for(int j=0;j<data.goals[i].books!.length;j++){
+        if(data.goals[i].books![j].id == ''){
+          data.goals[i].books![j].id = await getIdOfBook(data.goals[i].books![j].title!);
+        }
+      }
+    }
+  }
+  writeSave();
+}
+Future<List<Book>> queryBooks(String query)async{ 
   Response r = await get(Uri.parse('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ'));
   //  print('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ');
   Map<String, dynamic> bookResults =  jsonDecode(r.body);
@@ -118,6 +154,20 @@ Future<List<Book>> getTitles(String query)async{
   }
   ret = filterDuplicates(ret);
   return ret;
+}
+DecorationImage getDecorationImage(String imgUrl){
+  DecorationImage decorationImage = const DecorationImage(
+    colorFilter: ColorFilter.mode(Colors.grey, BlendMode.modulate),
+    fit: BoxFit.cover, 
+    image: AssetImage('assets/logo.png'),
+  );
+  if(imgUrl != ''){
+    decorationImage = DecorationImage(
+      fit: BoxFit.cover, 
+      image: NetworkImage(imgUrl),
+    );
+    }
+  return decorationImage;
 }
 Drawer getDrawer(BuildContext context){
   return Drawer(

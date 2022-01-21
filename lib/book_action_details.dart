@@ -24,8 +24,11 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend>{
   @override
   void initState() {
     idx = data.libs.indexWhere((element) => element.book!.id == book.id);
-    if(idx != null && idx != -1){
+    if(idx != -1){
       btnSelected = actions.indexWhere((element) => element == data.libs[idx!].message);
+    }
+    else if(data.goals.any((element) => element.books!.any((element) => element.id == book.id))){
+      btnSelected = 2;
     }
     super.initState();
   }
