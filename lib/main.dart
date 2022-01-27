@@ -16,10 +16,12 @@ import 'add_goal.dart';
 import 'data.dart';
 import 'helper_functions.dart';
 import 'list_books.dart';
+import 'package:confetti/confetti.dart';
 
 Data data = Data.empty();
 int bookRequiredForGoal = 0;
 bool update = false;
+ConfettiController confettiController = ConfettiController(duration: const Duration(seconds: 2));
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -165,27 +167,15 @@ Future<void> alertUser(BuildContext context, String title)async{
     return await showDialog(context: context, builder: (context){
       return AlertDialog(
         title: Text(title, textAlign: TextAlign.center,),
-        content:  const Text("Would you like to add a new goals?", textAlign: TextAlign.center,),
+        content:  const Text("Please add a new goal", textAlign: TextAlign.center,),
         actions: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: (){
-                  Navigator.of(context).pop();
-                },
-                child: const Text("No"),
-              ),
-              const SizedBox(width: 5,),
-              ElevatedButton(
-                onPressed: (){
-                  data.goals.add(Settings.empty());
-                  writeSave();
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
-                },
-                child: const Text("Yes")
-              ),
-            ],
+          ElevatedButton(
+            onPressed: (){
+              data.goals.add(Settings.empty());
+              writeSave();
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+            },
+            child: const Text("Ok")
           )
         ],
       );
@@ -198,6 +188,7 @@ Future<bool> readSave(BuildContext context)async{
       await alertUser(context, "Your goals has expired on " + DateFormat('yyyy-MM-dd').format(data.goals.last.dateEnd!));
     }
     else if((data.goals.last.books!.length/data.goals.last.goalBooks!*100).ceil() > 99){
+      confettiController.play();
       await alertUser(context, "You have reached your current goals!");
     }
     if(update){
@@ -285,110 +276,116 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentNavIdx,
-        onTap: (int idx){
-          if(currentNavIdx != idx) {
-            setState(() {
-              updateNav(idx, currentNavIdx, context);
-            });
-          }
-        },
-        items: getNavs(),
-      ),
-      appBar: AppBar(
-        title: const Text('Book Goals'),
-      ),
-      drawer: getDrawer(context),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              FutureBuilder(
-                future: readSave(context),
-                builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                  if(snapshot.hasData){
-                    if((!snapshot.data && data.goals.last.goalBooks! > 0) || (data.goals.isNotEmpty && data.goals.last.goalBooks! > 0)){
-                      return Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: (){
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ListBookPageSend(idx: data.goals.length - 1)));
-                                },
-                                child: Stack(
-                                  children: [
-                                    SizedBox(
-                                      width: 200, height: 200,
-                                      child: CircularProgressIndicator(
-                                        color: Theme.of(context).colorScheme.secondary,
-                                        value: data.goals.last.books!.length/data.goals.last.goalBooks!,
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: 10, left: 10, right: 10, top: 10, 
-                                      child: Container(
-                                        child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
-                                          child: Column(
-                                            children: [
-                                              Text(data.goals.last.books!.length.toString()+"/"+data.goals.last.goalBooks!.toString(), textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
-                                              Padding(
-                                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                                child: Text((data.goals.last.books!.length/data.goals.last.goalBooks!*100).ceil().toString()+"%", textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
-                                              ),
-                                              const Padding(
-                                                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                                child: Text("books read", textAlign: TextAlign.center,style: TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 16),),
-                                              ),
-                                            ],
-                                          ) ,
+    return ConfettiWidget(
+      confettiController: confettiController,
+      numberOfParticles: 100,
+      blastDirection: 90,
+      blastDirectionality: BlastDirectionality.explosive,
+      child: Scaffold(
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: currentNavIdx,
+          onTap: (int idx){
+            if(currentNavIdx != idx) {
+              setState(() {
+                updateNav(idx, currentNavIdx, context);
+              });
+            }
+          },
+          items: getNavs(),
+        ),
+        appBar: AppBar(
+          title: const Text('Book Goals'),
+        ),
+        drawer: getDrawer(context),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                FutureBuilder(
+                  future: readSave(context),
+                  builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                    if(snapshot.hasData){
+                      if((!snapshot.data && data.goals.last.goalBooks! > 0) || (data.goals.isNotEmpty && data.goals.last.goalBooks! > 0)){
+                        return Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                  onTap: (){
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ListBookPageSend(idx: data.goals.length - 1)));
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      SizedBox(
+                                        width: 200, height: 200,
+                                        child: CircularProgressIndicator(
+                                          color: Theme.of(context).colorScheme.secondary,
+                                          value: data.goals.last.books!.length/data.goals.last.goalBooks!,
                                         ),
-                                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),)
-                                    )
-                                  ],
+                                      ),
+                                      Positioned(
+                                        bottom: 10, left: 10, right: 10, top: 10, 
+                                        child: Container(
+                                          child: Padding(
+                                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
+                                            child: Column(
+                                              children: [
+                                                Text(data.goals.last.books!.length.toString()+"/"+data.goals.last.goalBooks!.toString(), textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
+                                                Padding(
+                                                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                                  child: Text((data.goals.last.books!.length/data.goals.last.goalBooks!*100).ceil().toString()+"%", textAlign: TextAlign.center,style: const TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 24),),
+                                                ),
+                                                const Padding(
+                                                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                                  child: Text("books read", textAlign: TextAlign.center,style: TextStyle(color: Colors.black, fontStyle: FontStyle.italic, fontSize: 16),),
+                                                ),
+                                              ],
+                                            ) ,
+                                          ),
+                                          decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),)
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if(bookRequiredForGoal != -1)
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text("A book needs to be finished every " + bookRequiredForGoal.toString() + " day(s)."),
+                              ),            
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(primary: Theme.of(context).colorScheme.secondary),
+                                  icon: const Icon(Icons.book),
+                                  onPressed: () async{
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddBookPageSend()));
+                                    writeSave();
+                                  }, label: const Text('Add a Book',),
                                 ),
                               ),
-                            ],
-                          ),
-                          if(bookRequiredForGoal != -1)
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text("A book needs to be finished every " + bookRequiredForGoal.toString() + " day(s)."),
-                            ),            
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(primary: Theme.of(context).colorScheme.secondary),
-                                icon: const Icon(Icons.book),
-                                onPressed: () async{
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddBookPageSend()));
-                                  writeSave();
-                                }, label: const Text('Add a Book',),
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.sports_score_rounded),
+                                label: const Text('Modify the Goal',),
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Scaffold(appBar: AppBar(), body: const SingleChildScrollView(child: AddGoalPageSend()))));
+                                },
                               ),
-                            ),
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.sports_score_rounded),
-                              label: const Text('Modify the Goal',),
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Scaffold(appBar: AppBar(), body: const SingleChildScrollView(child: AddGoalPageSend()))));
-                              },
-                            ),
-                        ],
-                      );
+                          ],
+                        );
+                      }
+                      else{
+                        return const AddGoalPageSend();
+                      }
                     }
-                    else{
-                      return const AddGoalPageSend();
-                    }
-                  }
-                  return const CircularProgressIndicator();
-                },
-              ),
-            ],
+                    return const CircularProgressIndicator();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

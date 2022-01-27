@@ -16,6 +16,20 @@ class LibraryPageSend extends StatefulWidget {
 class LibraryPage extends State<LibraryPageSend>{
   List<Book> goalBooks = List.empty(growable: true);
   ScrollController mainScrollController = ScrollController();
+  Widget getList(String message){
+    return ListView.builder(
+      shrinkWrap: true,
+      controller: mainScrollController,
+      itemCount: data.libs.length,
+      itemBuilder: (BuildContext context, int idx){
+        int reverseIdx = data.libs.length - 1 - idx;
+        if(message == "" || (message == "Read" && data.libs[reverseIdx].message!.split(' ').contains("Read")) || data.libs[reverseIdx].message == message) {
+          return getCard(reverseIdx, data.libs[reverseIdx].book!);
+        }
+        return Container();
+      },
+    );
+  }
   Card getCard(int idx, Book book){
     return Card(
       child: Container(
@@ -72,110 +86,84 @@ class LibraryPage extends State<LibraryPageSend>{
           controller: mainScrollController,
           itemCount: goalBooks.length,
           itemBuilder: (BuildContext context, int idx){
-            return getCard(idx, goalBooks[idx]);
+            int reverseIdx = goalBooks.length - 1 - idx;
+            return getCard(reverseIdx, goalBooks[reverseIdx]);
           },
         ),
       );
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Library"),),
-      body: Column(
-        children: [
-          DefaultTabController(
-            length: 4,
-            child: Flexible(
-              child: Column(
-                children: [
-                  TabBar(
-                    indicatorColor: Theme.of(context).primaryColor,
-                    labelColor: Theme.of(context).primaryColor,
-                    tabs: const [
-                      Tab(icon: Icon(Icons.grid_on), child: FittedBox(child: Text("All"))),
-                      Tab(icon: Icon(Icons.timelapse_rounded), child: FittedBox(child: Text("Reading"))),
-                      Tab(icon: Icon(Icons.bookmarks_rounded), child: FittedBox(child: Text("Want to read"))),
-                      Tab(icon: Icon(Icons.done_rounded), child: FittedBox(child: Text("Read"))),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        SingleChildScrollView(
-                          controller: mainScrollController,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  controller: mainScrollController,
-                                  itemCount: data.libs.length,
-                                  itemBuilder: (BuildContext context, int idx){
-                                    return getCard(idx, data.libs[idx].book!);
-                                  },
-                                ),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text("Books read for set goals:"),
-                              ),
-                              getReadForGoals()
-                            ],
-                          ),
-                        ),
-                        ListView.builder(
-                          itemCount: data.libs.length,
-                          itemBuilder: (BuildContext context, int idx){
-                            if(data.libs[idx].message == "Reading") {
-                              return getCard(idx, data.libs[idx].book!);
-                            }
-                            return Container();
-                          },
-                        ),
-                        ListView.builder(
-                          itemCount: data.libs.length,
-                          itemBuilder: (BuildContext context, int idx){
-                            if(data.libs[idx].message == "Want to read") {
-                              return getCard(idx, data.libs[idx].book!);
-                            }
-                            return Container();
-                          },
-                        ),
-                        SingleChildScrollView(
-                          controller: mainScrollController,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  controller: mainScrollController,
-                                  itemCount: data.libs.length,
-                                  itemBuilder: (BuildContext context, int idx){
-                                    if(data.libs[idx].message == "Read") {
-                                      return getCard(idx, data.libs[idx].book!);
-                                    }
-                                    return Container();
-                                  },
-                                ),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text("Books read for set goals:"),
-                              ),
-                              getReadForGoals()
-                            ],
-                          ),
-                        ),
+    return WillPopScope(
+      onWillPop: ()async{
+        Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text("Library"),),
+        body: Column(
+          children: [
+            DefaultTabController(
+              length: 4,
+              child: Flexible(
+                child: Column(
+                  children: [
+                    TabBar(
+                      indicatorColor: Theme.of(context).primaryColor,
+                      labelColor: Theme.of(context).primaryColor,
+                      tabs: const [
+                        Tab(icon: Icon(Icons.grid_on), child: FittedBox(child: Text("All"))),
+                        Tab(icon: Icon(Icons.timelapse_rounded), child: FittedBox(child: Text("Reading"))),
+                        Tab(icon: Icon(Icons.bookmarks_rounded), child: FittedBox(child: Text("Want to read"))),
+                        Tab(icon: Icon(Icons.done_rounded), child: FittedBox(child: Text("Read"))),
                       ],
                     ),
-                  )
-                ],
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          SingleChildScrollView(
+                            controller: mainScrollController,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: getList("")
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("Books read for set goals:"),
+                                ),
+                                getReadForGoals()
+                              ],
+                            ),
+                          ),
+                          getList("Reading"),
+                          getList("Want to Read"),
+                          SingleChildScrollView(
+                            controller: mainScrollController,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: getList("Read"),
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("Books read for set goals:"),
+                                ),
+                                getReadForGoals()
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

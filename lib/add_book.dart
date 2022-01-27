@@ -44,7 +44,7 @@ class AddBookPage extends State<AddBookPageSend>{
                 setState(() {
                   setStarColors(1);
                 });
-            }, color: starColors[1], icon: Icon(Icons.star),),
+            }, color: starColors[1], icon: const Icon(Icons.star),),
           ),
           FittedBox(
             child: IconButton(
@@ -52,7 +52,7 @@ class AddBookPage extends State<AddBookPageSend>{
                 setState(() {
                   setStarColors(2);
                 });
-            }, color: starColors[2], icon: Icon(Icons.star),),
+            }, color: starColors[2], icon: const Icon(Icons.star),),
           ),
           FittedBox(
             child: IconButton(
@@ -60,7 +60,7 @@ class AddBookPage extends State<AddBookPageSend>{
                 setState(() {
                   setStarColors(3);
                 });
-            }, color: starColors[3], icon: Icon(Icons.star),),
+            }, color: starColors[3], icon: const Icon(Icons.star),),
           ),
           FittedBox(
             child: IconButton(
@@ -68,7 +68,7 @@ class AddBookPage extends State<AddBookPageSend>{
                 setState(() {
                   setStarColors(4);
                 });
-            }, color: starColors[4], icon: Icon(Icons.star),),
+            }, color: starColors[4], icon: const Icon(Icons.star),),
           ),
         ],
       ),
@@ -132,13 +132,16 @@ class AddBookPage extends State<AddBookPageSend>{
                 if(bookSelected.title == ''){
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text('Please enter the title of the book.')));
                 }
-                else{
+                else if(!data.goals.last.books!.any((element) => element.id == bookSelected.id)){
                   bookSelected.rating = rating;
                   data.goals.last.books!.add(bookSelected);
                   print(bookSelected.toString());
                   writeSave();
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
                 }
+                else{
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text("Book already exists.")));
+                }
+                Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
               }, icon: const Icon(Icons.task_alt_rounded), label: const Text("Save"))
             ],
           ),
