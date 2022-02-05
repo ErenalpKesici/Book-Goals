@@ -12,6 +12,7 @@ class StatsPageSend extends StatefulWidget{
 }
 class StatsPage extends State<StatsPageSend>{
   int totalBooks = 0, totalPages = 0;
+  List<Settings> goalsReached = data.goals.where((element) => element.books!.length >= element.goalBooks!).toList();
   @override
   void initState() {
     for(var goal in data.goals){
@@ -43,8 +44,9 @@ class StatsPage extends State<StatsPageSend>{
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ListTile(leading: const Text("Total books read"), trailing: Text(totalBooks.toString()),),
-          ListTile(leading: const Text("Total pages read"), trailing: Text(totalPages.toString()),)
+          Card(child: ListTile(leading: const Icon(Icons.pages), title: const Text("Total pages read"), trailing: Text(totalPages.toString()),)),
+          Card(child: ListTile(leading: const Icon(Icons.all_inclusive), title: const Text("Total books read"), trailing: Text(totalBooks.toString()),)),
+          Card(child: ListTile(leading: const Icon(Icons.done_all), title: const Text("Ratio of goals finished"), trailing: Text(((goalsReached.length/data.goals.length * 100).ceil()).toString() + "%"),))
         ],
       ),
     );

@@ -1,11 +1,5 @@
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:book_goals/main.dart';
-import 'package:book_goals/settings.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:http/http.dart';
 import 'helper_functions.dart';
 import 'book.dart';
 
@@ -103,30 +97,31 @@ class AddBookPage extends State<AddBookPageSend>{
                     bookSelected = books!.firstWhere(((element) => element.title==selected));
                   },
                   fieldViewBuilder: (BuildContext context,TextEditingController textEditingController,FocusNode focusNode,VoidCallback onFieldSubmitted) {
-                    return TextFormField(
-                      controller: textEditingController,
-                      focusNode: focusNode,
-                      decoration: InputDecoration(labelText: 'Book Title', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)) ),
-                      onFieldSubmitted: (String value) {
-                        focusNode.unfocus();
-                      },
-                    );
+                      return TextFormField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(labelText: 'Book Title', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)) ),
+                        onFieldSubmitted: (String value) {
+                          focusNode.unfocus();
+                        },
+                      );
                   },
-                optionsBuilder: (TextEditingValue textEditingValue) async{
-                  bookSelected.title = textEditingValue.text;
-                  books = await queryBooks(textEditingValue.text);
-                  if(books!.isNotEmpty){
-                    List<String> ret = List.empty(growable: true);
-                    for(Book book in books!){
-                      ret.add(book.title!);
+                  optionsBuilder: (TextEditingValue textEditingValue) async{
+                    bookSelected.title = textEditingValue.text;
+                    books = await queryBooks(textEditingValue.text);
+                    if(books!.isNotEmpty){
+                      List<String> ret = List.empty(growable: true);
+                      for(Book book in books!){
+                        ret.add(book.title!);
+                      }
+                      return ret;
                     }
-                    return ret;
-                  }
-                  return const Iterable.empty();
+                    return const Iterable.empty();
                   },
                 )
               ),
-              getStars(),
+              if(books != null && books!.isNotEmpty)
+                getStars(),
               SizedBox(height: MediaQuery.of(context).size.height/10,),
               ElevatedButton.icon(onPressed: () async {
                 if(bookSelected.title == ''){

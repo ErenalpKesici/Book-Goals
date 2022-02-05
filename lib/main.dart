@@ -17,7 +17,7 @@ import 'data.dart';
 import 'helper_functions.dart';
 import 'list_books.dart';
 import 'package:confetti/confetti.dart';
-
+import 'package:flutter_downloader/flutter_downloader.dart';
 Data data = Data.empty();
 int bookRequiredForGoal = 0;
 bool update = false;
@@ -364,7 +364,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   onPressed: () async{
                                     Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddBookPageSend()));
                                     writeSave();
-                                  }, label: const Text('Add a Book',),
+                                  }, label: const Text('Add a Book towards the Goal',),
                                 ),
                               ),
                               ElevatedButton.icon(
