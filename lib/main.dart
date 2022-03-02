@@ -220,7 +220,7 @@ Future<bool> readSave(BuildContext context)async{
     await File(externalDir.path +'/Save.json').create();
   }
   if(data.goals.isNotEmpty) {
-    //IF ID DIDNT GET INSERTED
+    //IF IT DIDNT GET INSERTED
     if(data.goals.any((element) => element.books!.any((element) => element.id == ''))){
       await updateIdOfBooks();
     }

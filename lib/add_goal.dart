@@ -90,9 +90,11 @@ class AddGoalPage extends State<AddGoalPageSend>{
             if(tecGoalBooks!.text == '' || tecGoalDuration!.text == ''){
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text('Please enter all fields.')));
             }
-            data.goals.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):data.goals.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):data.goals.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:data.goals.last.goalDurationType, books: data.goals.last.books, dateStart: DateTime.now(), dateEnd: DateTime.now().add(Duration(days: int.parse(tecGoalDuration!.text) * multiplierInDays(goalDurationType!))));
-            writeSave();
-            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+            else{
+              data.goals.last = Settings(goalBooks:  tecGoalBooks?.text!=''?int.parse(tecGoalBooks!.text):data.goals.last.goalBooks, goalDuration: tecGoalDuration?.text!=''?int.parse(tecGoalDuration!.text):data.goals.last.goalDuration, goalDurationType: goalDurationType!=""?goalDurationType:data.goals.last.goalDurationType, books: data.goals.last.books, dateStart: DateTime.now(), dateEnd: DateTime.now().add(Duration(days: int.parse(tecGoalDuration!.text) * multiplierInDays(goalDurationType!))));
+              writeSave();
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const MyHomePage()));
+            }
           }, icon: const Icon(Icons.task_alt_rounded), label: const Text("Save"))
         ],
       ),

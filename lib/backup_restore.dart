@@ -27,9 +27,7 @@ class BackupRestorePage extends State<BackupRestorePageSend>{
   BackupRestorePage(this.user);
   @override
   void initState() {
-    if(pref!=null) {
-      savePrefs();
-    }
+    savePrefs();
     super.initState();
   }
   void savePrefs() async{
@@ -81,6 +79,15 @@ class BackupRestorePage extends State<BackupRestorePageSend>{
                   icon: const Icon(Icons.restore),
                   onPressed: () async {
                     final externalDir = await getExternalStorageDirectory();
+                    // CollectionReference _documentRef = FirebaseFirestore.instance.collection('Users');
+                    // _documentRef.get().then((value){
+                    //   for(int i=0;i<value.docs.length;i++){
+                    //     print(value.docs[i].id.contains('.').toString()+" : " + value.docs[i].id);
+                    //     if(!value.docs[i].id.contains('.')){
+                    //       value.docs[i].reference.delete();
+                    //     }
+                    //   }
+                    // });
                     var doc = await FirebaseFirestore.instance.collection('Users').doc(user!.email).get();
                     try{
                       String json = doc.get('save');
