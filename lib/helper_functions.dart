@@ -176,6 +176,7 @@ DecorationImage getDecorationImage(String imgUrl){
 }
 Drawer getDrawer(BuildContext context){
   return Drawer(
+    backgroundColor: Colors.black45,
     child: ListView(
       children: [
         const DrawerHeader(

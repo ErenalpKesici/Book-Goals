@@ -45,10 +45,13 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend>{
         }
       }
       else {
-        if(message == 'Just Read' && DateTime.now().compareTo(data.goals.last.dateEnd!) < 1 && !data.goals.last.books!.any((element) => element.id == book.id)){
+        data.libs.removeAt(idx!);
+        if(message == 'Just Read' && data.goals.last.dateEnd != null && DateTime.now().compareTo(data.goals.last.dateEnd!) < 1 && !data.goals.last.books!.any((element) => element.id == book.id)){
           data.goals.last.books!.add(book);
         }
-        data.libs.removeAt(idx!);
+        else{
+          data.libs.add(Library(book: book, message: message));
+        }
       }
     }
     writeSave();

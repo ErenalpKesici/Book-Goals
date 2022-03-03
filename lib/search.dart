@@ -72,15 +72,20 @@ class SearchPage extends State<SearchPageSend>{
                           Book book = snapshot.data[index];
                           if(book.title == null)return Container();
                           return Card(
-                            child: ListTile(
-                              minVerticalPadding: 10,
-                              isThreeLine: true,
-                              title: Text(book.title!),
-                              subtitle: Text(book.authors!.isNotEmpty==true?book.authors!.first:''),
-                              onTap: (){
-                                focusNode?.unfocus();
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BookActionDetailsPageSend(book)));
-                              },
+                            child: Container(           
+                              decoration: BoxDecoration(
+                                  image: getDecorationImage(book.imgUrl!)
+                              ),
+                              child: ListTile(
+                                minVerticalPadding: 10,
+                                isThreeLine: true,
+                                title: Text(book.title!),
+                                subtitle: Text(book.authors!.isNotEmpty==true?book.authors!.first:''),
+                                onTap: (){
+                                  focusNode?.unfocus();
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BookActionDetailsPageSend(book)));
+                                },
+                              ),
                             ),
                           );
                         },
