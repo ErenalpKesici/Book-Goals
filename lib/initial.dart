@@ -92,8 +92,9 @@ class InitialPage extends State<InitialPageSend>{
                 if(read == 1){
                   DocumentReference doc = FirebaseFirestore.instance.collection("Users").doc(googleAccount!.email);
                   var document = await doc.get();
-                  if(!document.exists)
+                  if(!document.exists) {
                     return;
+                  }
                   Users user =  Users(email: document.get('email'), password: document.get('password'), name: document.get('name'));  
                 }
                 else if(read == 0){
@@ -107,8 +108,8 @@ class InitialPage extends State<InitialPageSend>{
                   FirebaseFirestore.instance.collection('Users').doc(googleAccount!.email).set({'email': googleAccount!.email, 'name': googleAccount!.displayName, 'password': googleAccount!.id});  
                   ScaffoldMessenger.of(context).showSnackBar( SnackBar(content: Text('welcome'.toString() + googleAccount!.displayName!)));
                 }
-              }, icon: Image.asset("assets/google.png", width: 16,), label: Text("Continue with Google".toString(), style: TextStyle( color: Colors.black))),
-              SizedBox(height: 50,),
+              }, icon: Image.asset("assets/google.png", width: 16,), label: Text("Continue with Google".toString(), style: const TextStyle( color: Colors.black))),
+              const SizedBox(height: 50,),
               ElevatedButton.icon(onPressed: ()async{ 
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) =>RegisterPageSend()));
               }, icon: Icon(Icons.create_sharp), label: Text("No Account?", )),

@@ -42,7 +42,7 @@ class OldGoalsPage extends State<OldGoalsPageSend>{
             return Card(elevation: 1, child: 
               ListTile(
                 title: Text(dates),
-                subtitle: Text(titles.isEmpty?'No books have been read for this goals.':titles.toString().substring(1, titles.toString().length - 1), textAlign: TextAlign.center,),
+                subtitle: Text(titles.isEmpty?'No books have been read for this goal.':titles.toString().substring(1, titles.toString().length - 1), textAlign: TextAlign.center,),
                 trailing: SizedBox(width:  20, child: iconStatus??const LinearProgressIndicator()),
                 iconColor: Colors.red,
                 isThreeLine: true,

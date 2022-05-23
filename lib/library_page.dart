@@ -32,36 +32,41 @@ class LibraryPage extends State<LibraryPageSend>{
   }
   Card getCard(int idx, Book book){
     return Card(
-      child: Container(
-        decoration: BoxDecoration(
-          image: getDecorationImage(book.imgUrl!)
-        ),
-        child: Slidable(
-          startActionPane: ActionPane(
-            motion: const StretchMotion(),
-            children: [
-               SlidableAction(
-                onPressed: (BuildContext context){
-                  setState(() {
-                    data.libs.removeAt(idx);
-                  });
-                  writeSave();
-                },
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: 'Delete',
+      child: Hero(
+        tag: book.id!,
+        child: Material(
+          child: Container(
+            decoration: BoxDecoration(
+              image: getDecorationImage(book.imgUrl!)
+            ),
+            child: Slidable(
+              startActionPane: ActionPane(
+                motion: const StretchMotion(),
+                children: [
+                   SlidableAction(
+                    onPressed: (BuildContext context){
+                      setState(() {
+                        data.libs.removeAt(idx);
+                      });
+                      writeSave();
+                    },
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete,
+                    label: 'Delete',
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: ListTile(
-            minVerticalPadding: 10,
-            isThreeLine: true,
-            title: Text(book.title!, style: getCardTextStyle()),
-            subtitle: Text(book.authors!.isNotEmpty==true?book.authors!.first:'', style: getCardTextStyle()),
-            onTap: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BookActionDetailsPageSend(book)));
-            },
+              child: ListTile(
+                minVerticalPadding: 10,
+                isThreeLine: true,
+                title: Text(book.title!, style: getCardTextStyle()),
+                subtitle: Text(book.authors!.isNotEmpty==true?book.authors!.first:'', style: getCardTextStyle()),
+                onTap: (){
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BookActionDetailsPageSend(book)));
+                },
+              ),
+            ),
           ),
         ),
       ),
@@ -79,18 +84,33 @@ class LibraryPage extends State<LibraryPageSend>{
     super.initState();
   }
   Widget getReadForGoals(){
-    return 
-      Flexible(
-        child: ListView.builder(
-          shrinkWrap: true,
-          controller: mainScrollController,
-          itemCount: goalBooks.length,
-          itemBuilder: (BuildContext context, int idx){
-            int reverseIdx = goalBooks.length - 1 - idx;
-            return getCard(reverseIdx, goalBooks[reverseIdx]);
-          },
+    if(goalBooks.isNotEmpty){
+      return SizedBox(
+        height: 500,
+        child: Column(
+          children: [
+            const Flexible(
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text("Books read for set goals:"),
+              ),
+            ),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                controller: mainScrollController,
+                itemCount: goalBooks.length,
+                itemBuilder: (BuildContext context, int idx){
+                  int reverseIdx = goalBooks.length - 1 - idx;
+                  return getCard(reverseIdx, goalBooks[reverseIdx]);
+                },
+              ),
+            ),
+          ],
         ),
       );
+    }
+    return Container();
   }
   @override
   Widget build(BuildContext context) {
@@ -129,10 +149,6 @@ class LibraryPage extends State<LibraryPageSend>{
                                 Flexible(
                                   child: getList("")
                                 ),
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text("Books read for set goals:"),
-                                ),
                                 getReadForGoals()
                               ],
                             ),
@@ -146,10 +162,6 @@ class LibraryPage extends State<LibraryPageSend>{
                               children: [
                                 Flexible(
                                   child: getList("Read"),
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text("Books read for set goals:"),
                                 ),
                                 getReadForGoals()
                               ],

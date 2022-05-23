@@ -291,7 +291,9 @@ void tryUpdate(BuildContext context) async{
     String url = "https://www.github.com"+document.getElementsByClassName('Box-row')[0].children[1].attributes.values.first;
     String latestVersion = url.split('/').last.split('-')[1];
     if(packageInfo.version.compareTo(latestVersion) > -1) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text("You are already on the latest version.")));
+      if(context.widget.toString() == "SettingsPageSend") {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Theme.of(context).hintColor, content: const Text("You are already on the latest version.")));
+      }
     }
     else{
       await showDialog(barrierDismissible: false, context: context, builder: (context){
@@ -350,5 +352,15 @@ void tryUpdate(BuildContext context) async{
         );
       });
     }
+  }
+  Container getGradient(){
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: <Color>[Colors.deepPurple, Theme.of(context).primaryColor]),
+      ),
+    );
   }
 }
