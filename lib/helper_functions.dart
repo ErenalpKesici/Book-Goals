@@ -281,7 +281,7 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) async{
   final SendPort? send = IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }
-void tryUpdate(BuildContext context) async{
+void tryUpdate(BuildContext context) async{return;
   if(await Permission.storage.request() == PermissionStatus.granted){
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String status = "Would you like to update?";
