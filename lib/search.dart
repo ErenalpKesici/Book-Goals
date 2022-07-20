@@ -1,4 +1,5 @@
 import 'package:book_goals/library.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import 'book.dart';
@@ -14,7 +15,8 @@ class SearchPageSend extends StatefulWidget {
     return SearchPage();
   }
 }
-class SearchPage extends State<SearchPageSend>{
+
+class SearchPage extends State<SearchPageSend> {
   int currentNavIdx = 1;
   TextEditingController tecQuery = TextEditingController(text: '');
   List<Book> booksFound = List.empty(growable: true);
@@ -25,14 +27,15 @@ class SearchPage extends State<SearchPageSend>{
     futureTitles = queryBooks(tecQuery.text);
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     FocusNode? focusNode;
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentNavIdx,
-        onTap: (int idx){
-          if(currentNavIdx != idx) {
+        onTap: (int idx) {
+          if (currentNavIdx != idx) {
             setState(() {
               updateNav(idx, currentNavIdx, context);
             });
@@ -41,7 +44,7 @@ class SearchPage extends State<SearchPageSend>{
         items: getNavs(),
       ),
       appBar: AppBar(
-        title: const Text('Search'),
+        title: Text('searchBooks'.tr()),
       ),
       body: Column(
         mainAxisSize: MainAxisSize.min,
@@ -51,8 +54,11 @@ class SearchPage extends State<SearchPageSend>{
             child: TextField(
               focusNode: focusNode,
               controller: tecQuery,
-               decoration: InputDecoration(labelText: 'Book Title', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)) ),
-              onChanged: (String? value){
+              decoration: InputDecoration(
+                  labelText: 'enterQueryBook'.tr(),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10))),
+              onChanged: (String? value) {
                 setState(() {
                   futureTitles = queryBooks(tecQuery.text);
                 });
@@ -61,30 +67,43 @@ class SearchPage extends State<SearchPageSend>{
           ),
           FutureBuilder(
             future: futureTitles,
-            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) { 
-              if(snapshot.hasData) {
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              if (snapshot.hasData) {
                 bookAction = List.filled(snapshot.data.length, '');
                 return Expanded(
                   child: StatefulBuilder(
-                    builder: (BuildContext context, void Function(void Function()) setState) {
+                    builder: (BuildContext context,
+                        void Function(void Function()) setState) {
                       return ListView.builder(
                         itemBuilder: (BuildContext context, int index) {
                           Book book = snapshot.data[index];
-                          if(book.title == null)return Container();
+                          if (book.title == null) return Container();
                           return Card(
-                            child: Container(           
-                              decoration: BoxDecoration(
-                                  image: getDecorationImage(book.imgUrl!)
-                              ),
-                              child: ListTile(
-                                minVerticalPadding: 10,
-                                isThreeLine: true,
-                                title: Text(book.title!),
-                                subtitle: Text(book.authors!.isNotEmpty==true?book.authors!.first:''),
-                                onTap: (){
-                                  focusNode?.unfocus();
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>BookActionDetailsPageSend(book)));
-                                },
+                            child: Hero(
+                              tag: book.id!,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    image: getDecorationImage(book.imgUrl!)),
+                                child: ListTile(
+                                  minVerticalPadding: 10,
+                                  isThreeLine: true,
+                                  title: Text(book.title!),
+                                  subtitle: Text(
+                                      book.authors!.isNotEmpty == true
+                                          ? book.authors!.first
+                                          : ''),
+                                  onTap: () {
+                                    focusNode?.unfocus();
+                                    Navigator.push(
+                                        context,
+                                        PageRouteBuilder(
+                                            transitionDuration:
+                                                const Duration(seconds: 1),
+                                            pageBuilder: (_, __, ___) =>
+                                                BookActionDetailsPageSend(
+                                                    book, SearchPageSend())));
+                                  },
+                                ),
                               ),
                             ),
                           );
@@ -94,8 +113,7 @@ class SearchPage extends State<SearchPageSend>{
                     },
                   ),
                 );
-              }
-              else{
+              } else {
                 return const CircularProgressIndicator();
               }
             },

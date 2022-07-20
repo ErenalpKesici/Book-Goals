@@ -1,4 +1,4 @@
-package com.example.book_goals
+package com.pobol.book_goals
 
 import io.flutter.embedding.android.FlutterActivity
 
