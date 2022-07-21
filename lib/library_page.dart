@@ -100,8 +100,7 @@ class LibraryPage extends State<LibraryPageSend> {
 
   Widget getReadForGoals() {
     if (goalBooks.isNotEmpty) {
-      return SizedBox(
-        height: 500,
+      return Expanded(
         child: Column(
           children: [
             Flexible(
@@ -192,11 +191,7 @@ class LibraryPage extends State<LibraryPageSend> {
                           SingleChildScrollView(
                             controller: mainScrollController,
                             child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Flexible(child: getList("")),
-                                getReadForGoals()
-                              ],
+                              children: [getList(""), getReadForGoals()],
                             ),
                           ),
                           getList("Reading"),

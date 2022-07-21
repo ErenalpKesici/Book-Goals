@@ -1,5 +1,6 @@
 import 'package:book_goals/helper_functions.dart';
 import 'package:book_goals/library_page.dart';
+import 'package:book_goals/list_books.dart';
 import 'package:book_goals/main.dart';
 import 'package:book_goals/settings.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -97,66 +98,68 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
                       padding: const EdgeInsets.all(8.0),
                       child: Image.network(book.imgUrl!),
                     ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                          onPressed: btnSelected != 0
-                              ? () {
-                                  setState(() {
-                                    btnSelected = 0;
-                                  });
-                                  updateLibs(actions[0]);
-                                }
-                              : null,
-                          icon: const Icon(Icons.timelapse_rounded),
-                          label: Text(actionsTranslated[0])),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      ElevatedButton.icon(
-                          onPressed: btnSelected != 1
-                              ? () {
-                                  setState(() {
-                                    btnSelected = 1;
-                                  });
-                                  updateLibs(actions[1]);
-                                }
-                              : null,
-                          icon: const Icon(Icons.bookmarks_rounded),
-                          label: Text(actionsTranslated[1])),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                          onPressed: btnSelected != 2
-                              ? () {
-                                  setState(() {
-                                    btnSelected = 2;
-                                  });
-                                  updateLibs(actions[2]);
-                                }
-                              : null,
-                          icon: const Icon(Icons.done_rounded),
-                          label: Text(actionsTranslated[2])),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      ElevatedButton.icon(
-                          onPressed: btnSelected != 3
-                              ? () {
-                                  setState(() {
-                                    btnSelected = 3;
-                                  });
-                                  updateLibs(actions[3]);
-                                }
-                              : null,
-                          icon: const Icon(Icons.done_outline),
-                          label: Text(actionsTranslated[3])),
-                    ],
-                  ),
+                  if (sender.runtimeType != ListBookPageSend)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                            onPressed: btnSelected != 0
+                                ? () {
+                                    setState(() {
+                                      btnSelected = 0;
+                                    });
+                                    updateLibs(actions[0]);
+                                  }
+                                : null,
+                            icon: const Icon(Icons.timelapse_rounded),
+                            label: Text(actionsTranslated[0])),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        ElevatedButton.icon(
+                            onPressed: btnSelected != 1
+                                ? () {
+                                    setState(() {
+                                      btnSelected = 1;
+                                    });
+                                    updateLibs(actions[1]);
+                                  }
+                                : null,
+                            icon: const Icon(Icons.bookmarks_rounded),
+                            label: Text(actionsTranslated[1])),
+                      ],
+                    ),
+                  if (sender.runtimeType != ListBookPageSend)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                            onPressed: btnSelected != 2
+                                ? () {
+                                    setState(() {
+                                      btnSelected = 2;
+                                    });
+                                    updateLibs(actions[2]);
+                                  }
+                                : null,
+                            icon: const Icon(Icons.done_rounded),
+                            label: Text(actionsTranslated[2])),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        ElevatedButton.icon(
+                            onPressed: btnSelected != 3
+                                ? () {
+                                    setState(() {
+                                      btnSelected = 3;
+                                    });
+                                    updateLibs(actions[3]);
+                                  }
+                                : null,
+                            icon: const Icon(Icons.done_outline),
+                            label: Text(actionsTranslated[3])),
+                      ],
+                    ),
                   btnSelected != -1 && btnSelected != 1
                       ? getBookReview(book)
                       : Container(),

@@ -5,10 +5,13 @@ import 'package:book_goals/AuthenticationServices.dart';
 import 'package:book_goals/preferences.dart';
 import 'package:book_goals/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/src/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'helper_functions.dart';
 import 'initial.dart';
 import 'main.dart';
 
@@ -25,19 +28,31 @@ class BackupRestorePageSend extends StatefulWidget {
 
 class BackupRestorePage extends State<BackupRestorePageSend> {
   Users? user;
-  String backupFrequency = pref == null ? 'Day' : pref!.backupFrequency!;
+  int backupFrequencyIdx = 0;
+  List<String> durations = getDurations();
   BackupRestorePage(this.user);
+  void loadFrequency() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      backupFrequencyIdx = prefs.getInt('backupFrequency') ?? 0;
+    });
+  }
+
   @override
   void initState() {
     savePrefs();
+    loadFrequency();
     super.initState();
   }
 
   void savePrefs() async {
-    final externalDir = await getExternalStorageDirectory();
-    await File(externalDir!.path + "/Preferences.json").writeAsString(
-        jsonEncode(
-            Preferences(user: user!.email, backupFrequency: backupFrequency)));
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt('backupFrequency', backupFrequencyIdx);
+    prefs.setString('email', user!.email!);
+    // final externalDir = await getExternalStorageDirectory();
+    // await File(externalDir!.path + "/Preferences.json").writeAsString(
+    //     jsonEncode(Preferences(
+    //         user: user!.email, backupFrequencyIdx: backupFrequencyIdx)));
   }
 
   @override
@@ -50,7 +65,7 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
       },
       child: Scaffold(
           appBar: AppBar(
-            title: const FittedBox(child: Text('Backup/Restore')),
+            title: FittedBox(child: Text('Backup/Restore'.tr())),
             centerTitle: true,
           ),
           body: Center(
@@ -59,26 +74,26 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(32.0),
-                  child: Text("Signed in Account: " + user!.email!),
+                  child: Text("signedInAccount".tr() + ' ' + user!.email!),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ListTile(
                       leading: const Icon(Icons.security_rounded),
-                      title: const Text(
-                        "Automatically backup every ",
+                      title: Text(
+                        "autoBackupEvery".tr(),
                         textAlign: TextAlign.center,
                       ),
                       trailing: DropdownButton<String>(
                         alignment: AlignmentDirectional.center,
-                        value: backupFrequency,
+                        value: durations[backupFrequencyIdx],
                         onChanged: (String? newValue) async {
                           setState(() {
-                            backupFrequency = newValue!;
+                            durations[backupFrequencyIdx] = newValue!;
                           });
                           savePrefs();
                         },
-                        items: <String>['Day', 'Week', 'Month']
+                        items: durations
                             .map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
@@ -130,7 +145,7 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
                                   e.toString())));
                         }
                       },
-                      label: const Text("Restore"),
+                      label: Text("restore".tr()),
                     ),
                     const SizedBox(
                       width: 5,
@@ -170,14 +185,14 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
                                   builder: (context) => const MyHomePage()));
                             }
                           },
-                          label: const Text("Backup")),
+                          label: Text("backup".tr())),
                     ),
                   ],
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton.icon(
-                    label: const Text("Sign out"),
+                    label: Text("logout".tr()),
                     icon: const Icon(Icons.logout),
                     onPressed: () async {
                       await context.read<AuthenticationServices>().signOut();

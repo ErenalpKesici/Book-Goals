@@ -14,6 +14,7 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:isolate';
 import 'backup_restore.dart';
 import 'book.dart';
@@ -24,7 +25,7 @@ import 'old_goals.dart';
 import 'package:http/http.dart' as http;
 
 List<String> getDurations() {
-  return <String>['days'.tr(), 'months'.tr(), 'years'.tr()];
+  return <String>['days'.tr(), 'weeks'.tr(), 'months'.tr(), 'years'.tr()];
 }
 
 List<String> getPeriods() {
@@ -42,48 +43,56 @@ void writeSave() async {
 }
 
 void tryBackup() async {
+  final prefs = await SharedPreferences.getInstance();
+  String email = prefs.getString('email') ?? '';
+  if (email == '') return;
+  int backupFrequencyIdx = prefs.getInt('backupFrequencyIdx') ?? 0;
   final externalDir = await getExternalStorageDirectory();
-  if (await File(externalDir!.path + "/Preferences.json").exists()) {
-    String readPref =
-        await File(externalDir.path + "/Preferences.json").readAsString();
-    pref = Preferences.empty();
-    Map<String, dynamic> prefs = jsonDecode(readPref);
-    prefs.forEach((key, value) {
-      switch (key) {
-        case ('user'):
-          pref!.user = value;
-          break;
-        case ('backupFrequency'):
-          pref!.backupFrequency = value;
-          break;
-      }
-    });
-    var doc = await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(pref!.user)
-        .get();
-    DateTime dateUpdated = DateTime.parse(doc.get('dateUpdated'));
-    int frequencyDays = 0;
-    switch (pref!.backupFrequency) {
-      case ('Day'):
-        frequencyDays = 1;
-        break;
-      case ('Week'):
-        frequencyDays = 7;
-        break;
-      case ('Month'):
-        frequencyDays = 30;
-        break;
-    }
-    if (DateUtils.dateOnly(dateUpdated.add(Duration(days: frequencyDays)))
-            .compareTo(DateUtils.dateOnly(DateTime.now())) <
-        1) {
-      String readSave =
-          await File(externalDir.path + "/Save.json").readAsString();
-      if (doc.get('save') != readSave) {
-        FirebaseFirestore.instance.collection('Users').doc(pref!.user).update(
-            {'dateUpdated': DateTime.now().toString(), 'save': readSave});
-      }
+
+  // if (await File(externalDir!.path + "/Preferences.json").exists()) {
+  //   String readPref =
+  //       await File(externalDir.path + "/Preferences.json").readAsString();
+  //   pref = Preferences.empty();
+  //   Map<String, dynamic> prefs = jsonDecode(readPref);
+  //   prefs.forEach((key, value) {
+  //     switch (key) {
+  //       case ('user'):
+  //         pref!.user = value;
+  //         break;
+  //       case ('backupFrequency'):
+  //         pref!.backupFrequency = value;
+  //         break;
+  //     }
+  //   });
+
+  var doc =
+      await FirebaseFirestore.instance.collection('Users').doc(email).get();
+  DateTime dateUpdated = DateTime.parse(doc.get('dateUpdated'));
+  int frequencyDays = 0;
+  switch (backupFrequencyIdx) {
+    case (0):
+      frequencyDays = 1;
+      break;
+    case (1):
+      frequencyDays = 7;
+      break;
+    case (2):
+      frequencyDays = 30;
+      break;
+    case (3):
+      frequencyDays = 365;
+      break;
+  }
+  if (DateUtils.dateOnly(dateUpdated.add(Duration(days: frequencyDays)))
+          .compareTo(DateUtils.dateOnly(DateTime.now())) <
+      1) {
+    String readSave =
+        await File(externalDir!.path + "/Save.json").readAsString();
+    if (doc.get('save') != readSave) {
+      FirebaseFirestore.instance
+          .collection('Users')
+          .doc(email)
+          .update({'dateUpdated': DateTime.now().toString(), 'save': readSave});
     }
   }
 }

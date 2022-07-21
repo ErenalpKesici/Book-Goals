@@ -67,11 +67,13 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
           return Card(
               elevation: 1,
               child: ListTile(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) =>
-                          OldGoalDetailsPageSend(dates, books[idx])));
-                },
+                onTap: books[idx].isEmpty
+                    ? null
+                    : () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                OldGoalDetailsPageSend(dates, books[idx])));
+                      },
                 title: Text(
                   dates,
                   textAlign: TextAlign.center,

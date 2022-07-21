@@ -8,26 +8,31 @@ import 'package:provider/src/provider.dart';
 
 class AuthenticationWrapper extends StatelessWidget {
   const AuthenticationWrapper({Key? key}) : super(key: key);
-  Future<Users> findUser(email) async{
-    DocumentReference doc = FirebaseFirestore.instance.collection("Users").doc(email);
+  Future<Users> findUser(email) async {
+    DocumentReference doc =
+        FirebaseFirestore.instance.collection("Users").doc(email);
     var document = await doc.get();
-    Users ret = Users(email: document.get('email'), password: document.get('password'), name: document.get('name')); 
+    Users ret = Users(
+        email: document.get('email'),
+        password: document.get('password'),
+        name: document.get('name'));
     // Users ret = Users(email: 'e', password: 'e',name: 'e');
     return ret;
   }
+
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
-    if(firebaseUser != null) {
+    if (firebaseUser != null) {
       return FutureBuilder(
         future: findUser(firebaseUser.email),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if(snapshot.hasData)
+          if (snapshot.hasData)
             return BackupRestorePageSend(user: snapshot.data);
-          else 
+          else
             return Center(child: CircularProgressIndicator());
         },
-    );
+      );
     }
     return InitialPageSend();
   }

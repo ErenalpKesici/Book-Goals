@@ -8,6 +8,7 @@ import 'package:book_goals/library.dart';
 import 'package:book_goals/library_page.dart';
 import 'package:book_goals/search.dart';
 import 'package:book_goals/settings.dart';
+import 'package:book_goals/user.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,6 +18,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'AuthenticationWrapper.dart';
 import 'add_goal.dart';
 import 'data.dart';
 import 'helper_functions.dart';
@@ -24,10 +26,11 @@ import 'list_books.dart';
 import 'package:confetti/confetti.dart';
 
 Data data = Data.empty();
-int bookRequiredForGoal = 0, daysRemaining = -1;
+int bookRequiredForGoal = 0, daysRemaining = -1, booksLeft = -1;
 bool update = false;
 ConfettiController confettiController =
     ConfettiController(duration: const Duration(seconds: 2));
+Users? user;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
@@ -322,6 +325,7 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
             builder: (BuildContext context,
                 void Function(void Function()) setState) {
               return AlertDialog(
+                contentPadding: EdgeInsets.fromLTRB(2, 10, 2, 0),
                 actionsAlignment: MainAxisAlignment.center,
                 alignment: Alignment.center,
                 title: Text(
@@ -353,9 +357,6 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
                               ),
                             ),
                           ],
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * .05,
                         ),
                         // Text(
                         //   "howLongGoal".tr(),
@@ -409,6 +410,61 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
                             ),
                           ],
                         ),
+
+                        ElevatedButton.icon(
+                            onPressed: () async {
+                              if (tecGoalBooks.text == '' ||
+                                  tecGoalDuration.text == '') {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        backgroundColor:
+                                            Theme.of(context).hintColor,
+                                        content: const Text(
+                                            'Please enter all fields.')));
+                              } else {
+                                if (data.goals.isEmpty) {
+                                  data.goals.add(Settings.empty());
+                                }
+                                data.goals.last = Settings(
+                                    goalBooks: tecGoalBooks.text != ''
+                                        ? int.parse(tecGoalBooks.text)
+                                        : data.goals.last.goalBooks,
+                                    goalDuration: tecGoalDuration.text != ''
+                                        ? int.parse(tecGoalDuration.text)
+                                        : data.goals.last.goalDuration,
+                                    goalDurationType: goalDurationType != ""
+                                        ? goalDurationType
+                                        : data.goals.last.goalDurationType,
+                                    books: data.goals.last.books,
+                                    dateStart: DateTime.now(),
+                                    dateEnd: DateTime.now().add(Duration(
+                                        days: int.parse(tecGoalDuration.text) *
+                                            multiplierInDays(durations
+                                                .indexWhere((element) =>
+                                                    element ==
+                                                    goalDurationType!)))));
+                                writeSave();
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => const MyHomePage()));
+                              }
+                            },
+                            icon: const Icon(Icons.task_alt_rounded),
+                            label: Text("save".tr())),
+
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(children: [
+                            const Expanded(
+                                child: Divider(
+                              thickness: 1,
+                            )),
+                            Text("or".tr()),
+                            const Expanded(
+                                child: Divider(
+                              thickness: 1,
+                            )),
+                          ]),
+                        ),
                       ],
                     ),
                   ),
@@ -416,39 +472,16 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
                 actions: [
                   ElevatedButton.icon(
                       onPressed: () async {
-                        if (tecGoalBooks.text == '' ||
-                            tecGoalDuration.text == '') {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor: Theme.of(context).hintColor,
-                              content: const Text('Please enter all fields.')));
-                        } else {
-                          if (data.goals.isEmpty) {
-                            data.goals.add(Settings.empty());
-                          }
-                          data.goals.last = Settings(
-                              goalBooks: tecGoalBooks.text != ''
-                                  ? int.parse(tecGoalBooks.text)
-                                  : data.goals.last.goalBooks,
-                              goalDuration: tecGoalDuration.text != ''
-                                  ? int.parse(tecGoalDuration.text)
-                                  : data.goals.last.goalDuration,
-                              goalDurationType: goalDurationType != ""
-                                  ? goalDurationType
-                                  : data.goals.last.goalDurationType,
-                              books: data.goals.last.books,
-                              dateStart: DateTime.now(),
-                              dateEnd: DateTime.now().add(Duration(
-                                  days: int.parse(tecGoalDuration.text) *
-                                      multiplierInDays(durations.indexWhere(
-                                          (element) =>
-                                              element == goalDurationType!)))));
-                          writeSave();
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const MyHomePage()));
-                        }
+                        runApp(EasyLocalization(supportedLocales: const [
+                          Locale('tr'),
+                          Locale('en'),
+                        ], path: 'assets/translations', child: const MyApp()));
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                const AuthenticationWrapper()));
                       },
-                      icon: const Icon(Icons.task_alt_rounded),
-                      label: Text("save".tr()))
+                      icon: const Icon(Icons.import_export),
+                      label: Text("restore".tr()))
                 ],
               );
             },
@@ -575,6 +608,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 .difference(DateTime.now())
                                 .inDays +
                             1;
+                        booksLeft = data.goals.last.goalBooks! -
+                            data.goals.last.books!.length;
                         bookRequiredForGoal = findBookFrequency();
                         return Column(
                           children: [
@@ -592,113 +627,115 @@ class _MyHomePageState extends State<MyHomePage> {
                                                           1)));
                                     }
                                   },
-                                  child: Stack(
-                                    children: [
-                                      SizedBox(
-                                        width: 200,
-                                        height: 200,
-                                        child: CircularProgressIndicator(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
-                                          value: data.goals.last.books!.length /
-                                              data.goals.last.goalBooks!,
+                                  child: Tooltip(
+                                    message: data.goals.last.books!.length
+                                            .toString() +
+                                        "/" +
+                                        data.goals.last.goalBooks!.toString(),
+                                    child: Stack(
+                                      children: [
+                                        SizedBox(
+                                          width: 200,
+                                          height: 200,
+                                          child: CircularProgressIndicator(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
+                                            value:
+                                                data.goals.last.books!.length /
+                                                    data.goals.last.goalBooks!,
+                                          ),
                                         ),
-                                      ),
-                                      Positioned(
-                                          bottom: 10,
-                                          left: 10,
-                                          right: 10,
-                                          top: 10,
-                                          child: Container(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      16, 32, 16, 0),
-                                              child: Column(
-                                                children: [
-                                                  Text(
-                                                    data.goals.last.books!
-                                                            .length
-                                                            .toString() +
-                                                        "/" +
-                                                        data.goals.last
-                                                            .goalBooks!
-                                                            .toString(),
-                                                    textAlign: TextAlign.center,
-                                                    style: const TextStyle(
-                                                        color: Colors.black,
-                                                        fontStyle:
-                                                            FontStyle.italic,
-                                                        fontSize: 24),
-                                                  ),
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                            .fromLTRB(
-                                                        16, 16, 16, 0),
-                                                    child: Text(
-                                                      (data.goals.last.books!
-                                                                      .length /
-                                                                  data
-                                                                      .goals
-                                                                      .last
-                                                                      .goalBooks! *
-                                                                  100)
-                                                              .ceil()
-                                                              .toString() +
-                                                          "%",
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: const TextStyle(
-                                                          color: Colors.black,
-                                                          fontStyle:
-                                                              FontStyle.italic,
-                                                          fontSize: 24),
+                                        Positioned(
+                                            bottom: 10,
+                                            left: 10,
+                                            right: 10,
+                                            top: 10,
+                                            child: Container(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        16, 32, 16, 0),
+                                                child: Column(
+                                                  children: [
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                              .fromLTRB(
+                                                          16, 16, 16, 0),
+                                                      child: Text(
+                                                        (data.goals.last.books!
+                                                                        .length /
+                                                                    data
+                                                                        .goals
+                                                                        .last
+                                                                        .goalBooks! *
+                                                                    100)
+                                                                .ceil()
+                                                                .toString() +
+                                                            "%",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: const TextStyle(
+                                                            color: Colors.black,
+                                                            fontStyle: FontStyle
+                                                                .italic,
+                                                            fontSize: 24),
+                                                      ),
                                                     ),
-                                                  ),
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                            .fromLTRB(
-                                                        16, 16, 16, 0),
-                                                    child: Text(
-                                                      "booksRead".tr(),
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: TextStyle(
-                                                          color: Colors.black,
-                                                          fontStyle:
-                                                              FontStyle.italic,
-                                                          fontSize: 16),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                              .fromLTRB(
+                                                          16, 16, 16, 0),
+                                                      child: Text(
+                                                        "booksRead".tr(),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontStyle: FontStyle
+                                                                .italic,
+                                                            fontSize: 16),
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                            decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.centerRight,
-                                                    colors: [
-                                                      Theme.of(context)
-                                                          .primaryColor,
-                                                      Colors.white
-                                                    ]),
-                                                border: Border.all(
-                                                    color: Theme.of(context)
-                                                        .appBarTheme
-                                                        .backgroundColor!),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                      spreadRadius: 1,
-                                                      offset: Offset(12, 5),
-                                                      blurRadius: 5)
-                                                ],
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                shape: BoxShape.circle),
-                                          ))
-                                    ],
+                                              decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                      begin: Alignment.topLeft,
+                                                      end:
+                                                          Alignment.centerRight,
+                                                      colors: [
+                                                        Theme.of(context)
+                                                            .primaryColor,
+                                                        bookRequiredForGoal == 0
+                                                            ? Colors.white
+                                                            : Color.fromRGBO(
+                                                                (1 /
+                                                                        bookRequiredForGoal *
+                                                                        255)
+                                                                    .ceil(),
+                                                                127,
+                                                                255,
+                                                                1)
+                                                      ]),
+                                                  border: Border.all(
+                                                      color: Theme.of(context)
+                                                          .appBarTheme
+                                                          .backgroundColor!),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        spreadRadius: 1,
+                                                        offset: Offset(12, 5),
+                                                        blurRadius: 5)
+                                                  ],
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                                  shape: BoxShape.circle),
+                                            ))
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
@@ -707,7 +744,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(0, 48, 0, 0),
                                 child: ListTile(
-                                    leading: const Icon(Icons.alarm),
+                                    leading: const Icon(Icons.lightbulb),
                                     title: Text(
                                       "goalBookFrequency_1".tr() +
                                           ' ' +
@@ -715,8 +752,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ' ' +
                                           "goalBookFrequency_2".tr(),
                                       style: const TextStyle(
-                                        wordSpacing: 3,
-                                      ),
+                                          wordSpacing: 3, letterSpacing: 1),
                                       textAlign: TextAlign.center,
                                     )),
                               ),
@@ -729,6 +765,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                   'daysRemaining'.tr() +
                                       ":    " +
                                       daysRemaining.toString(),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            if (booksLeft != -1)
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.book,
+                                ),
+                                title: Text(
+                                  'booksLeft'.tr() +
+                                      ":    " +
+                                      booksLeft.toString(),
                                   textAlign: TextAlign.center,
                                 ),
                               )

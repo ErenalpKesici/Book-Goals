@@ -1,18 +1,18 @@
 import 'package:book_goals/user.dart';
 import 'package:flutter/material.dart';
 
-class Preferences{
+class Preferences {
   String? user;
-  String? backupFrequency;
-  Preferences({@required this.user, @required this.backupFrequency});
+  int? backupFrequencyIdx;
+  Preferences({@required this.user, @required this.backupFrequencyIdx});
   Preferences.empty();
-  Preferences.fromJson(Map<String, dynamic> json): 
-    user = json['user'],
-    backupFrequency = json['backupFrequency'];
+  Preferences.fromJson(Map<String, dynamic> json)
+      : user = json['user'],
+        backupFrequencyIdx = json['backupFrequencyIdx'];
   Map<String, dynamic> toJson() {
     return {
       'user': user.toString(),
-      'backupFrequency': backupFrequency.toString(),
+      'backupFrequency': backupFrequencyIdx.toString(),
     };
   }
 }

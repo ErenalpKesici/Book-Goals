@@ -1,6 +1,7 @@
 import 'package:book_goals/register.dart';
 import 'package:book_goals/user.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -107,48 +108,23 @@ class InitialPage extends State<InitialPageSend> {
               ),
               SignInButton(Buttons.Google, text: 'loginGoogle'.tr(),
                   onPressed: () async {
-                var result;
-                await googleSignIn.signIn().then((userData) {
-                  print(userData?.email);
-                  result = context.read<AuthenticationServices>().signIn(
-                        email: userData!.email,
-                        password: userData.id,
-                      );
-                  googleAccount = userData;
-                });
-                int read = await result;
-                if (read == 1) {
+                UserCredential userCredential = await context
+                    .read<AuthenticationServices>()
+                    .signInWithGoogle();
+                if (!userCredential.additionalUserInfo!.isNewUser) {
                   DocumentReference doc = FirebaseFirestore.instance
                       .collection("Users")
-                      .doc(googleAccount!.email);
-                  var document = await doc.get();
-                  if (!document.exists) {
-                    return;
-                  }
-                  Users user = Users(
-                      email: document.get('email'),
-                      password: document.get('password'),
-                      name: document.get('name'));
-                } else if (read == 0) {
-                  await googleSignIn.signIn().then((userData) {
-                    result = context.read<AuthenticationServices>().signUp(
-                          email: userData?.email,
-                          password: userData?.id,
-                        );
-                    googleAccount = userData;
-                  });
-                  FirebaseFirestore.instance
+                      .doc(userCredential.user!.email);
+                } else {
+                  await FirebaseFirestore.instance
                       .collection('Users')
-                      .doc(googleAccount!.email)
+                      .doc(userCredential.user!.email)
                       .set({
-                    'email': googleAccount!.email,
-                    'name': googleAccount!.displayName,
-                    'password': googleAccount!.id,
-                    'dateUpdated': DateTime.now().toString(),
+                    'email': userCredential.user!.email,
+                    'name': userCredential.user!.displayName,
+                    'password': userCredential.user!.uid,
+                    'picture': userCredential.user!.photoURL,
                   });
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          'welcome'.toString() + googleAccount!.displayName!)));
                 }
               }),
               const SizedBox(
