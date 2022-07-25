@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'book.dart';
 import 'book_action_details.dart';
+import 'library.dart';
 import 'main.dart';
 
 class LibraryPageSend extends StatefulWidget {
@@ -19,21 +20,48 @@ class LibraryPage extends State<LibraryPageSend> {
   List<Book> goalBooks = List.empty(growable: true);
   ScrollController mainScrollController = ScrollController();
   int currentNavIdx = 2;
+
   Widget getList(String message) {
-    return ListView.builder(
-      shrinkWrap: true,
-      controller: mainScrollController,
-      itemCount: data.libs.length,
-      itemBuilder: (BuildContext context, int idx) {
-        int reverseIdx = data.libs.length - 1 - idx;
-        if (message == "" ||
-            (message == "Read" &&
-                data.libs[reverseIdx].message!.split(' ').contains("Read")) ||
-            data.libs[reverseIdx].message == message) {
-          return getCard(reverseIdx, data.libs[reverseIdx].book!);
-        }
-        return Container();
-      },
+    int length = data.libs.length;
+    length += (message == '' || message == 'Read') && goalBooks.isNotEmpty
+        ? goalBooks.length
+        : 0;
+    return SingleChildScrollView(
+      child: ListView.builder(
+        shrinkWrap: true,
+        controller: mainScrollController,
+        itemCount: length,
+        reverse: true,
+        itemBuilder: (BuildContext context, int idx) {
+          if (idx < data.libs.length) {
+            if (message == "" ||
+                idx < data.libs.length && data.libs[idx].message == message) {
+              return getCard(idx, data.libs[idx].book!);
+            }
+          } else {
+            return getCard(idx, goalBooks[idx - data.libs.length]);
+          }
+          return Container();
+        },
+      ),
+    );
+  }
+
+  Widget getReadForGoals() {
+    if (goalBooks.isNotEmpty) {
+      return Expanded(
+        child: ListView.builder(
+          controller: mainScrollController,
+          itemCount: goalBooks.length,
+          itemBuilder: (BuildContext context, int idx) {
+            int reverseIdx = goalBooks.length - 1 - idx;
+            return getCard(reverseIdx, goalBooks[reverseIdx]);
+          },
+        ),
+      );
+    }
+    return Expanded(
+      child: Container(),
     );
   }
 
@@ -51,7 +79,15 @@ class LibraryPage extends State<LibraryPageSend> {
                   SlidableAction(
                     onPressed: (BuildContext context) {
                       setState(() {
-                        data.libs.removeAt(idx);
+                        if (idx < data.libs.length)
+                          data.libs.removeAt(idx);
+                        else {
+                          data.goals.forEach((element) => element.books
+                              ?.removeWhere((element) =>
+                                  element ==
+                                  goalBooks[idx - data.libs.length]));
+                          goalBooks.removeAt(idx - data.libs.length);
+                        }
                       });
                       writeSave();
                     },
@@ -98,35 +134,6 @@ class LibraryPage extends State<LibraryPageSend> {
     super.initState();
   }
 
-  Widget getReadForGoals() {
-    if (goalBooks.isNotEmpty) {
-      return Expanded(
-        child: Column(
-          children: [
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text("readForGoal".tr()),
-              ),
-            ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                controller: mainScrollController,
-                itemCount: goalBooks.length,
-                itemBuilder: (BuildContext context, int idx) {
-                  int reverseIdx = goalBooks.length - 1 - idx;
-                  return getCard(reverseIdx, goalBooks[reverseIdx]);
-                },
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return Container();
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -139,6 +146,7 @@ class LibraryPage extends State<LibraryPageSend> {
         length: 4,
         child: Scaffold(
           bottomNavigationBar: BottomNavigationBar(
+            showUnselectedLabels: false,
             currentIndex: currentNavIdx,
             onTap: (int idx) {
               if (currentNavIdx != idx) {
@@ -150,7 +158,7 @@ class LibraryPage extends State<LibraryPageSend> {
             items: getNavs(),
           ),
           appBar: AppBar(
-            title: Text("library".tr()),
+            title: Text("myLibrary".tr()),
             bottom: TabBar(
               tabs: [
                 Tab(
@@ -188,26 +196,10 @@ class LibraryPage extends State<LibraryPageSend> {
                     Expanded(
                       child: TabBarView(
                         children: [
-                          SingleChildScrollView(
-                            controller: mainScrollController,
-                            child: Column(
-                              children: [getList(""), getReadForGoals()],
-                            ),
-                          ),
+                          getList(""),
                           getList("Reading"),
                           getList("Want to Read"),
-                          SingleChildScrollView(
-                            controller: mainScrollController,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Flexible(
-                                  child: getList("Read"),
-                                ),
-                                getReadForGoals()
-                              ],
-                            ),
-                          ),
+                          getList("Read"),
                         ],
                       ),
                     )

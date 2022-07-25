@@ -33,6 +33,7 @@ class SearchPage extends State<SearchPageSend> {
     FocusNode? focusNode;
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
+        showUnselectedLabels: false,
         currentIndex: currentNavIdx,
         onTap: (int idx) {
           if (currentNavIdx != idx) {

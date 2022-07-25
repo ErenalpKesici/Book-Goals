@@ -135,6 +135,9 @@ class AddGoalPage extends State<AddGoalPageSend> {
         SizedBox(
           height: MediaQuery.of(context).size.height / 10,
         ),
+        Row(
+          children: [Divider(), Text('or'), Divider()],
+        ),
         ElevatedButton.icon(
             onPressed: () async {
               if (tecGoalBooks!.text == '' || tecGoalDuration!.text == '') {

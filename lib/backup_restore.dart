@@ -124,7 +124,6 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
                             .get();
                         try {
                           String json = doc.get('save');
-                          print(json);
                           await File(externalDir!.path + "/Save.json")
                               .writeAsString(json);
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(

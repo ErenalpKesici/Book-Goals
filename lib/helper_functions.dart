@@ -313,15 +313,15 @@ Drawer getDrawer(BuildContext context) {
 List<BottomNavigationBarItem> getNavs() {
   return [
     BottomNavigationBarItem(
-      icon: Icon(Icons.sports_score_rounded),
-      label: 'goal'.tr(),
+      icon: const Icon(Icons.sports_score_rounded),
+      label: 'myGoal'.tr(),
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.search),
+      icon: const Icon(Icons.search),
       label: 'search'.tr(),
     ),
     BottomNavigationBarItem(
-        icon: Icon(Icons.library_books), label: "library".tr())
+        icon: const Icon(Icons.library_books), label: "myLibrary".tr())
   ];
 }
 

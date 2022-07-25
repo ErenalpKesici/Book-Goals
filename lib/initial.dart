@@ -28,7 +28,7 @@ class InitialPage extends State<InitialPageSend> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Sign In'), centerTitle: true),
+      appBar: AppBar(title: Text('login'.tr()), centerTitle: true),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -54,15 +54,15 @@ class InitialPage extends State<InitialPageSend> {
                     controller: password,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
-                        labelText: 'Pasword'.toString(),
+                        labelText: 'pass'.tr(),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10))),
                   ),
                 ),
               ),
               ElevatedButton.icon(
-                  icon: Icon(Icons.login),
-                  label: Text("Login"),
+                  icon: const Icon(Icons.login),
+                  label: Text("login".tr()),
                   onPressed: () async {
                     print(email.text + " " + password.text);
                     if (email.text != "" && password.text != "") {
@@ -137,7 +137,7 @@ class InitialPage extends State<InitialPageSend> {
                   },
                   icon: Icon(Icons.create_sharp),
                   label: Text(
-                    "No Account?",
+                    "noaccount".tr(),
                   )),
             ],
           ),

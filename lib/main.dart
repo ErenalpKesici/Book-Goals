@@ -46,8 +46,10 @@ int multiplierInDays(int idx) {
     case (0):
       return 1;
     case (1):
-      return 30;
+      return 7;
     case (2):
+      return 30;
+    case (3):
       return 365;
     default:
       return 0;
@@ -223,7 +225,7 @@ Future<bool> readSave(BuildContext context) async {
         data.goals.last.books!.length < data.goals.last.goalBooks!) {
       await alertUser(
           context,
-          "Your goal has expired on " +
+          "goalDateExpired" +
               DateFormat('yyyy-MM-dd').format(data.goals.last.dateEnd!));
     } else if ((data.goals.last.books!.length /
                 data.goals.last.goalBooks! *
@@ -301,8 +303,7 @@ class MyApp extends StatelessWidget {
             primarySwatch: Colors.lightBlue,
             primaryColor: Colors.lightBlue,
             appBarTheme: AppBarTheme(color: Colors.lightBlue[300]),
-            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                backgroundColor: Colors.blueGrey),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(),
             colorScheme: ColorScheme.fromSwatch().copyWith(
               brightness: Brightness.dark,
               secondary: Colors.teal[200],
@@ -450,38 +451,44 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
                             },
                             icon: const Icon(Icons.task_alt_rounded),
                             label: Text("save".tr())),
-
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(children: [
-                            const Expanded(
-                                child: Divider(
-                              thickness: 1,
-                            )),
-                            Text("or".tr()),
-                            const Expanded(
-                                child: Divider(
-                              thickness: 1,
-                            )),
-                          ]),
-                        ),
                       ],
                     ),
                   ),
                 ),
                 actions: [
-                  ElevatedButton.icon(
-                      onPressed: () async {
-                        runApp(EasyLocalization(supportedLocales: const [
-                          Locale('tr'),
-                          Locale('en'),
-                        ], path: 'assets/translations', child: const MyApp()));
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                const AuthenticationWrapper()));
-                      },
-                      icon: const Icon(Icons.import_export),
-                      label: Text("restore".tr()))
+                  Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(children: [
+                          const Expanded(
+                              child: Divider(
+                            thickness: 1,
+                          )),
+                          Text("or".tr()),
+                          const Expanded(
+                              child: Divider(
+                            thickness: 1,
+                          )),
+                        ]),
+                      ),
+                      ElevatedButton.icon(
+                          onPressed: () async {
+                            runApp(EasyLocalization(
+                                supportedLocales: const [
+                                  Locale('tr'),
+                                  Locale('en'),
+                                ],
+                                path: 'assets/translations',
+                                child: const MyApp()));
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) =>
+                                    const AuthenticationWrapper()));
+                          },
+                          icon: const Icon(Icons.import_export),
+                          label: Text("restore".tr()))
+                    ],
+                  ),
                 ],
               );
             },
@@ -522,6 +529,7 @@ class _MyHomePageState extends State<MyHomePage> {
       blastDirectionality: BlastDirectionality.explosive,
       child: Scaffold(
         bottomNavigationBar: BottomNavigationBar(
+          showUnselectedLabels: false,
           currentIndex: currentNavIdx,
           onTap: (int idx) {
             if (currentNavIdx != idx) {
@@ -549,10 +557,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                     'confirmAbortGoal'.tr(),
                                     textAlign: TextAlign.center,
                                   ),
-                                  content: data.goals.last.books!.length /
-                                              data.goals.last.goalBooks! ==
-                                          0
-                                      ? Text('')
+                                  content: data.goals.last.goalBooks != 0 &&
+                                          data.goals.last.books!.length /
+                                                  data.goals.last.goalBooks! ==
+                                              0
+                                      ? const Text('')
                                       : Text(
                                           'confirmAbortGoal_1'.tr() +
                                               ' ' +
@@ -655,13 +664,28 @@ class _MyHomePageState extends State<MyHomePage> {
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.fromLTRB(
-                                                        16, 32, 16, 0),
+                                                        16, 4, 16, 0),
                                                 child: Column(
                                                   children: [
                                                     Padding(
                                                       padding: const EdgeInsets
                                                               .fromLTRB(
                                                           16, 16, 16, 0),
+                                                      child: Text(
+                                                        "maintext_1".tr(),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontStyle: FontStyle
+                                                                .italic,
+                                                            fontSize: 16),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                              .fromLTRB(
+                                                          0, 24, 0, 16),
                                                       child: Text(
                                                         (data.goals.last.books!
                                                                         .length /
@@ -675,11 +699,23 @@ class _MyHomePageState extends State<MyHomePage> {
                                                             "%",
                                                         textAlign:
                                                             TextAlign.center,
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
+                                                            shadows: [
+                                                              Shadow(
+                                                                  color: Colors
+                                                                      .black
+                                                                      .withOpacity(
+                                                                          .3),
+                                                                  offset:
+                                                                      const Offset(
+                                                                          5, 4),
+                                                                  blurRadius:
+                                                                      10)
+                                                            ],
                                                             color: Colors.black,
                                                             fontStyle: FontStyle
                                                                 .italic,
-                                                            fontSize: 24),
+                                                            fontSize: 32),
                                                       ),
                                                     ),
                                                     Padding(
@@ -687,7 +723,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                               .fromLTRB(
                                                           16, 16, 16, 0),
                                                       child: Text(
-                                                        "booksRead".tr(),
+                                                        "maintext_2".tr(),
                                                         textAlign:
                                                             TextAlign.center,
                                                         style: TextStyle(
@@ -766,6 +802,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                       ":    " +
                                       daysRemaining.toString(),
                                   textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      wordSpacing: 3, letterSpacing: 1),
                                 ),
                               ),
                             if (booksLeft != -1)
@@ -778,6 +816,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                       ":    " +
                                       booksLeft.toString(),
                                   textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      wordSpacing: 3, letterSpacing: 1),
                                 ),
                               )
                             // Padding(
