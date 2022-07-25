@@ -233,6 +233,9 @@ Future<bool> readSave(BuildContext context) async {
             .ceil() >
         99) {
       confettiController.play();
+      Future.delayed(const Duration(seconds: 2), () {
+        confettiController.stop();
+      });
       await alertUser(context, "goalReached".tr());
     }
     if (update) {
@@ -303,7 +306,9 @@ class MyApp extends StatelessWidget {
             primarySwatch: Colors.lightBlue,
             primaryColor: Colors.lightBlue,
             appBarTheme: AppBarTheme(color: Colors.lightBlue[300]),
-            bottomNavigationBarTheme: const BottomNavigationBarThemeData(),
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+                type: BottomNavigationBarType.shifting,
+                selectedItemColor: Theme.of(context).primaryColor),
             colorScheme: ColorScheme.fromSwatch().copyWith(
               brightness: Brightness.dark,
               secondary: Colors.teal[200],
@@ -519,6 +524,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     super.initState();
   }
+
+  static const List<Widget> _widgetOptions = <Widget>[];
 
   @override
   Widget build(BuildContext context) {

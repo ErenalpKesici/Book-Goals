@@ -67,8 +67,8 @@ class StatsPage extends State<StatsPageSend> {
             totalBooks++;
             bookCnt++;
             int statsIdx = -1;
-            if ((statsIdx = stats.indexWhere(
-                    (element) => element.date.compareTo(book.date!) == 0)) !=
+            if ((statsIdx = stats.indexWhere((element) =>
+                    element.date.difference(book.date!).inDays == 0)) !=
                 -1) {
               stats[statsIdx] = StatsData(
                   stats[statsIdx].date, stats[statsIdx].booksRead + bookCnt);
@@ -155,7 +155,8 @@ class StatsPage extends State<StatsPageSend> {
                 LineSeries<StatsData, String>(
                     dataSource: stats,
                     xValueMapper: (StatsData stats, _) =>
-                        DateFormat('yyyy-MM-dd').format(stats.date),
+                        DateFormat('yyyy-MM-dd')
+                            .format(DateUtils.dateOnly(stats.date)),
                     yValueMapper: (StatsData stats, _) => stats.booksRead)
               ]),
           Card(

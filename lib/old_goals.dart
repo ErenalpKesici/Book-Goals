@@ -94,7 +94,7 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
                     width: 20,
                     child: iconStatus ?? const LinearProgressIndicator()),
                 iconColor: Colors.red,
-                isThreeLine: true,
+                isThreeLine: books[idx].isNotEmpty ? true : false,
               ));
         },
       ),

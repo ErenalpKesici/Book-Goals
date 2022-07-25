@@ -53,20 +53,27 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
     if (btnSelected != -1) {
       book.date = readDate;
       if (idx == null || idx == -1) {
-        if (message == 'Just Read' &&
-            data.goals.last.dateEnd != null &&
-            DateTime.now().compareTo(data.goals.last.dateEnd!) < 1 &&
-            !data.goals.last.books!.any((element) => element.id == book.id)) {
+        //new
+        if (message == 'Read' ||
+            message == 'Just Read' &&
+                data.goals.last.dateEnd != null &&
+                book.date!.difference(data.goals.last.dateStart!).inDays > -1 &&
+                book.date!.difference(data.goals.last.dateEnd!).inDays < 1 &&
+                !data.goals.last.books!
+                    .any((element) => element.id == book.id)) {
           data.goals.last.books!.add(book);
         } else {
           data.libs.add(Library(book: book, message: message));
         }
       } else {
         data.libs.removeAt(idx!);
-        if (message == 'Just Read' &&
-            data.goals.last.dateEnd != null &&
-            DateTime.now().compareTo(data.goals.last.dateEnd!) < 1 &&
-            !data.goals.last.books!.any((element) => element.id == book.id)) {
+        if (message == 'Read' ||
+            message == 'Just Read' &&
+                data.goals.last.dateEnd != null &&
+                book.date!.difference(data.goals.last.dateStart!).inDays > -1 &&
+                book.date!.difference(data.goals.last.dateEnd!).inDays < 1 &&
+                !data.goals.last.books!
+                    .any((element) => element.id == book.id)) {
           data.goals.last.books!.add(book);
         } else {
           data.libs.add(Library(book: book, message: message));
@@ -137,23 +144,26 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
                         ElevatedButton.icon(
                           onPressed: btnSelected != 2
                               ? () async {
-                                  readDate = await showDatePicker(
-                                      helpText: 'finishedDate'.tr(),
-                                      builder: (context, child) => Theme(
-                                            data: ThemeData.light().copyWith(
-                                              dialogBackgroundColor: Colors
-                                                  .white, //Background color
-                                            ),
-                                            child: child!,
-                                          ),
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime(2000, 1, 1),
-                                      lastDate: DateTime.now());
-                                  setState(() {
-                                    btnSelected = 2;
-                                  });
-                                  updateLibs(actions[2]);
+                                  if (null !=
+                                      (readDate = await showDatePicker(
+                                          helpText: 'finishedDate'.tr(),
+                                          builder: (context, child) => Theme(
+                                                data:
+                                                    ThemeData.light().copyWith(
+                                                  dialogBackgroundColor: Colors
+                                                      .white, //Background color
+                                                ),
+                                                child: child!,
+                                              ),
+                                          context: context,
+                                          initialDate: DateTime.now(),
+                                          firstDate: DateTime(2000, 1, 1),
+                                          lastDate: DateTime.now()))) {
+                                    setState(() {
+                                      btnSelected = 2;
+                                    });
+                                    updateLibs(actions[2]);
+                                  }
                                 }
                               : null,
                           icon: const Icon(Icons.done_rounded),
