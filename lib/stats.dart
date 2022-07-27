@@ -151,7 +151,7 @@ class StatsPage extends State<StatsPageSend> {
           SfCartesianChart(
               title: ChartTitle(text: 'numberOfReadBooks'.tr()),
               primaryXAxis: CategoryAxis(),
-              series: <LineSeries<StatsData, String>>[
+              series: <ChartSeries<StatsData, String>>[
                 LineSeries<StatsData, String>(
                     dataSource: stats,
                     xValueMapper: (StatsData stats, _) =>

@@ -225,7 +225,8 @@ Future<bool> readSave(BuildContext context) async {
         data.goals.last.books!.length < data.goals.last.goalBooks!) {
       await alertUser(
           context,
-          "goalDateExpired" +
+          "goalDateExpired".tr() +
+              ' ' +
               DateFormat('yyyy-MM-dd').format(data.goals.last.dateEnd!));
     } else if ((data.goals.last.books!.length /
                 data.goals.last.goalBooks! *
@@ -321,64 +322,35 @@ class MyApp extends StatelessWidget {
 
 Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
   TextEditingController? tecGoalBooks = TextEditingController(text: ''),
-      tecGoalDuration = TextEditingController(text: '');
+      tecGoalDuration = TextEditingController(text: '1');
   List<String> durations = getDurations();
   String? goalDurationType = durations.first;
   await showDialog(
       context: context,
       barrierDismissible: dismissable,
-      builder: (context) => StatefulBuilder(
-            builder: (BuildContext context,
-                void Function(void Function()) setState) {
-              return AlertDialog(
-                contentPadding: EdgeInsets.fromLTRB(2, 10, 2, 0),
-                actionsAlignment: MainAxisAlignment.center,
-                alignment: Alignment.center,
-                title: Text(
-                  'modifyGoal'.tr(),
-                  textAlign: TextAlign.center,
-                ),
-                content: SizedBox(
-                  height: MediaQuery.of(context).size.height * .3,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                decoration: InputDecoration(
-                                    hintText: "howManyBooksGoal".tr(),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          width: 2,
-                                          color: Theme.of(context)
-                                              .appBarTheme
-                                              .backgroundColor!),
-                                      borderRadius: BorderRadius.circular(15),
-                                    )),
-                                keyboardType: TextInputType.number,
-                                controller: tecGoalBooks,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Text(
-                        //   "howLongGoal".tr(),
-                        //   style: const TextStyle(fontSize: 16),
-                        //   textAlign: TextAlign.center,
-                        // ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
+      builder: (context) => Scaffold(
+            body: StatefulBuilder(
+              builder: (BuildContext context,
+                  void Function(void Function()) setState) {
+                return AlertDialog(
+                  contentPadding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
+                  actionsAlignment: MainAxisAlignment.center,
+                  alignment: Alignment.center,
+                  title: Text(
+                    'modifyGoal'.tr(),
+                    textAlign: TextAlign.center,
+                  ),
+                  content: SizedBox(
+                    height: MediaQuery.of(context).size.height * .4,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
                                 child: TextField(
                                   decoration: InputDecoration(
-                                      hintText: 'duration'.tr(),
-                                      isDense: true,
+                                      hintText: "howManyBooksGoal".tr(),
                                       enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                             width: 2,
@@ -388,115 +360,151 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
                                         borderRadius: BorderRadius.circular(15),
                                       )),
                                   keyboardType: TextInputType.number,
-                                  controller: tecGoalDuration,
+                                  controller: tecGoalBooks,
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: DropdownButton<String>(
-                                  alignment: AlignmentDirectional.center,
-                                  value: goalDurationType,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      goalDurationType = newValue;
-                                    });
-                                  },
-                                  items: durations
-                                      .map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
+                            ],
+                          ),
+                          // Text(
+                          //   "howLongGoal".tr(),
+                          //   style: const TextStyle(fontSize: 16),
+                          //   textAlign: TextAlign.center,
+                          // ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: TextField(
+                                    decoration: InputDecoration(
+                                        hintText: 'duration'.tr(),
+                                        isDense: true,
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              width: 2,
+                                              color: Theme.of(context)
+                                                  .appBarTheme
+                                                  .backgroundColor!),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        )),
+                                    keyboardType: TextInputType.number,
+                                    controller: tecGoalDuration,
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-
-                        ElevatedButton.icon(
-                            onPressed: () async {
-                              if (tecGoalBooks.text == '' ||
-                                  tecGoalDuration.text == '') {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        backgroundColor:
-                                            Theme.of(context).hintColor,
-                                        content: const Text(
-                                            'Please enter all fields.')));
-                              } else {
-                                if (data.goals.isEmpty) {
-                                  data.goals.add(Settings.empty());
+                              Expanded(
+                                child: Center(
+                                  child: DropdownButton<String>(
+                                    alignment: AlignmentDirectional.center,
+                                    value: goalDurationType,
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        goalDurationType = newValue;
+                                      });
+                                    },
+                                    items: durations
+                                        .map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(4, 4, 4, 12),
+                            child: Text('goalFinishBefore'.tr()),
+                          ),
+                          ElevatedButton.icon(
+                              onPressed: () async {
+                                if (tecGoalBooks.text == '' ||
+                                    tecGoalDuration.text == '') {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          backgroundColor:
+                                              Theme.of(context).hintColor,
+                                          content:
+                                              Text('enterAllFields'.tr())));
+                                } else {
+                                  if (data.goals.isEmpty) {
+                                    data.goals.add(Settings.empty());
+                                  }
+                                  data.goals.last = Settings(
+                                      goalBooks: tecGoalBooks.text != ''
+                                          ? int.parse(tecGoalBooks.text)
+                                          : data.goals.last.goalBooks,
+                                      goalDuration: tecGoalDuration.text != ''
+                                          ? int.parse(tecGoalDuration.text)
+                                          : data.goals.last.goalDuration,
+                                      goalDurationType: goalDurationType != ""
+                                          ? goalDurationType
+                                          : data.goals.last.goalDurationType,
+                                      books: data.goals.last.books,
+                                      dateStart: DateTime.now(),
+                                      dateEnd: DateTime.now().add(Duration(
+                                          days: int.parse(tecGoalDuration.text) *
+                                              multiplierInDays(durations
+                                                  .indexWhere((element) =>
+                                                      element ==
+                                                      goalDurationType!)))));
+                                  writeSave();
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          const MyHomePage()));
                                 }
-                                data.goals.last = Settings(
-                                    goalBooks: tecGoalBooks.text != ''
-                                        ? int.parse(tecGoalBooks.text)
-                                        : data.goals.last.goalBooks,
-                                    goalDuration: tecGoalDuration.text != ''
-                                        ? int.parse(tecGoalDuration.text)
-                                        : data.goals.last.goalDuration,
-                                    goalDurationType: goalDurationType != ""
-                                        ? goalDurationType
-                                        : data.goals.last.goalDurationType,
-                                    books: data.goals.last.books,
-                                    dateStart: DateTime.now(),
-                                    dateEnd: DateTime.now().add(Duration(
-                                        days: int.parse(tecGoalDuration.text) *
-                                            multiplierInDays(durations
-                                                .indexWhere((element) =>
-                                                    element ==
-                                                    goalDurationType!)))));
-                                writeSave();
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => const MyHomePage()));
-                              }
-                            },
-                            icon: const Icon(Icons.task_alt_rounded),
-                            label: Text("save".tr())),
-                      ],
+                              },
+                              icon: const Icon(Icons.task_alt_rounded),
+                              label: Text("save".tr())),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                actions: [
-                  Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(children: [
-                          const Expanded(
-                              child: Divider(
-                            thickness: 1,
-                          )),
-                          Text("or".tr()),
-                          const Expanded(
-                              child: Divider(
-                            thickness: 1,
-                          )),
-                        ]),
-                      ),
-                      ElevatedButton.icon(
-                          onPressed: () async {
-                            runApp(EasyLocalization(
-                                supportedLocales: const [
-                                  Locale('tr'),
-                                  Locale('en'),
-                                ],
-                                path: 'assets/translations',
-                                child: const MyApp()));
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) =>
-                                    const AuthenticationWrapper()));
-                          },
-                          icon: const Icon(Icons.import_export),
-                          label: Text("restore".tr()))
-                    ],
-                  ),
-                ],
-              );
-            },
+                  actions: [
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(children: [
+                            const Expanded(
+                                child: Divider(
+                              thickness: 1,
+                            )),
+                            Text("or".tr()),
+                            const Expanded(
+                                child: Divider(
+                              thickness: 1,
+                            )),
+                          ]),
+                        ),
+                        ElevatedButton.icon(
+                            onPressed: () async {
+                              runApp(EasyLocalization(
+                                  supportedLocales: const [
+                                    Locale('tr'),
+                                    Locale('en'),
+                                  ],
+                                  path: 'assets/translations',
+                                  child: const MyApp()));
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AuthenticationWrapper()));
+                            },
+                            icon: const Icon(Icons.import_export),
+                            label: Text("restore".tr()))
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ));
 }
 
@@ -525,8 +533,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  static const List<Widget> _widgetOptions = <Widget>[];
-
   @override
   Widget build(BuildContext context) {
     return ConfettiWidget(
@@ -535,17 +541,23 @@ class _MyHomePageState extends State<MyHomePage> {
       blastDirection: 90,
       blastDirectionality: BlastDirectionality.explosive,
       child: Scaffold(
-        bottomNavigationBar: BottomNavigationBar(
-          showUnselectedLabels: false,
-          currentIndex: currentNavIdx,
-          onTap: (int idx) {
-            if (currentNavIdx != idx) {
-              setState(() {
-                updateNav(idx, currentNavIdx, context);
-              });
-            }
-          },
-          items: getNavs(),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                  top: BorderSide(color: Theme.of(context).primaryColor))),
+          child: BottomNavigationBar(
+            showUnselectedLabels: false,
+            currentIndex: currentNavIdx,
+            onTap: (int idx) {
+              if (currentNavIdx != idx) {
+                setState(() {
+                  updateNav(idx, currentNavIdx, context);
+                });
+              }
+            },
+            items: getNavs(),
+          ),
         ),
         appBar: AppBar(
           title: Text('app_name'.tr()),
@@ -682,7 +694,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                         "maintext_1".tr(),
                                                         textAlign:
                                                             TextAlign.center,
-                                                        style: TextStyle(
+                                                        style: const TextStyle(
                                                             color: Colors.black,
                                                             fontStyle: FontStyle
                                                                 .italic,
@@ -783,22 +795,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                               ],
                             ),
-                            if (bookRequiredForGoal != -1)
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 48, 0, 0),
-                                child: ListTile(
-                                    leading: const Icon(Icons.lightbulb),
-                                    title: Text(
-                                      "goalBookFrequency_1".tr() +
-                                          ' ' +
-                                          bookRequiredForGoal.toString() +
-                                          ' ' +
-                                          "goalBookFrequency_2".tr(),
-                                      style: const TextStyle(
-                                          wordSpacing: 3, letterSpacing: 1),
-                                      textAlign: TextAlign.center,
-                                    )),
-                              ),
+                            SizedBox(
+                              height: 25,
+                            ),
                             if (daysRemaining != -1)
                               ListTile(
                                 leading: const Icon(
@@ -826,35 +825,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                   style: const TextStyle(
                                       wordSpacing: 3, letterSpacing: 1),
                                 ),
-                              )
-                            // Padding(
-                            //   padding: const EdgeInsets.all(16.0),
-                            //   child: ElevatedButton.icon(
-                            //     style: ElevatedButton.styleFrom(
-                            //         primary: Theme.of(context)
-                            //             .colorScheme
-                            //             .secondary),
-                            //     icon: const Icon(Icons.book),
-                            //     onPressed: () async {
-                            //       Navigator.of(context).push(MaterialPageRoute(
-                            //           builder: (context) =>
-                            //               const AddBookPageSend()));
-                            //       writeSave();
-                            //     },
-                            //     label: Text(
-                            //       'addBookTowardsGoal'.tr(),
-                            //     ),
-                            //   ),
-                            // ),
-                            // ElevatedButton.icon(
-                            //   icon: const Icon(Icons.sports_score_rounded),
-                            //   label: Text(
-                            //     'modifyGoal'.tr(),
-                            //   ),
-                            //   onPressed: () {
-                            //     alertModifyGoal(context, true);
-                            //   },
-                            // ),
+                              ),
+                            if (bookRequiredForGoal != -1)
+                              ListTile(
+                                  leading: const Icon(Icons.lightbulb),
+                                  title: Text(
+                                    "goalBookFrequency_1".tr() +
+                                        ' ' +
+                                        bookRequiredForGoal.toString() +
+                                        ' ' +
+                                        "goalBookFrequency_2".tr(),
+                                    style: const TextStyle(
+                                        wordSpacing: 3, letterSpacing: 1),
+                                    textAlign: TextAlign.center,
+                                  )),
                           ],
                         );
                       } else {

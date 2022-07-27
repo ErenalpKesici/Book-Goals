@@ -32,17 +32,23 @@ class SearchPage extends State<SearchPageSend> {
   Widget build(BuildContext context) {
     FocusNode? focusNode;
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        showUnselectedLabels: false,
-        currentIndex: currentNavIdx,
-        onTap: (int idx) {
-          if (currentNavIdx != idx) {
-            setState(() {
-              updateNav(idx, currentNavIdx, context);
-            });
-          }
-        },
-        items: getNavs(),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border:
+                Border(top: BorderSide(color: Theme.of(context).primaryColor))),
+        child: BottomNavigationBar(
+          showUnselectedLabels: false,
+          currentIndex: currentNavIdx,
+          onTap: (int idx) {
+            if (currentNavIdx != idx) {
+              setState(() {
+                updateNav(idx, currentNavIdx, context);
+              });
+            }
+          },
+          items: getNavs(),
+        ),
       ),
       appBar: AppBar(
         title: Text('searchBooks'.tr()),
@@ -84,7 +90,8 @@ class SearchPage extends State<SearchPageSend> {
                               tag: book.id!,
                               child: Container(
                                 decoration: BoxDecoration(
-                                    image: getDecorationImage(book.imgUrl!)),
+                                    image: getDecorationImage(book.imgUrl!),
+                                    borderRadius: BorderRadius.circular(10)),
                                 child: ListTile(
                                   minVerticalPadding: 10,
                                   isThreeLine: true,

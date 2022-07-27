@@ -38,10 +38,20 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
   BookActionDetailsPage(this.book, this.sender);
   @override
   void initState() {
+    bool lib = true;
     idx = data.libs.indexWhere((element) => element.book!.id == book.id);
+    if (idx == -1) {
+      lib = false;
+      idx = data.goals.last.books
+          ?.indexWhere((element) => element.id! == book.id);
+    }
     if (idx != -1) {
-      btnSelected =
-          actions.indexWhere((element) => element == data.libs[idx!].message);
+      if (lib) {
+        btnSelected =
+            actions.indexWhere((element) => element == data.libs[idx!].message);
+      } else {
+        btnSelected = 2;
+      }
     } else if (data.goals.any(
         (element) => element.books!.any((element) => element.id == book.id))) {
       btnSelected = 2;
@@ -52,32 +62,25 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
   void updateLibs(String message) {
     if (btnSelected != -1) {
       book.date = readDate;
-      if (idx == null || idx == -1) {
-        //new
-        if (message == 'Read' ||
-            message == 'Just Read' &&
-                data.goals.last.dateEnd != null &&
-                book.date!.difference(data.goals.last.dateStart!).inDays > -1 &&
-                book.date!.difference(data.goals.last.dateEnd!).inDays < 1 &&
-                !data.goals.last.books!
-                    .any((element) => element.id == book.id)) {
-          data.goals.last.books!.add(book);
+      if (idx != null && idx != -1) {
+        if (data.libs.any((element) => element.book!.id == book.id)) {
+          data.libs.removeAt(idx!);
         } else {
-          data.libs.add(Library(book: book, message: message));
+          data.goals.last.books!.removeAt(idx!);
+          idx = data.libs.length - 1;
         }
+      }
+      if (message == 'Just Read' ||
+          message == 'Read' &&
+              data.goals.last.dateEnd != null &&
+              book.date!.difference(data.goals.last.dateStart!).inDays > -1 &&
+              book.date!.difference(data.goals.last.dateEnd!).inDays < 1 &&
+              !data.goals.last.books!.any((element) => element.id == book.id)) {
+        data.goals.last.books!.add(book);
+        idx = data.goals.last.books!.length - 1;
       } else {
-        data.libs.removeAt(idx!);
-        if (message == 'Read' ||
-            message == 'Just Read' &&
-                data.goals.last.dateEnd != null &&
-                book.date!.difference(data.goals.last.dateStart!).inDays > -1 &&
-                book.date!.difference(data.goals.last.dateEnd!).inDays < 1 &&
-                !data.goals.last.books!
-                    .any((element) => element.id == book.id)) {
-          data.goals.last.books!.add(book);
-        } else {
-          data.libs.add(Library(book: book, message: message));
-        }
+        data.libs.add(Library(book: book, message: message));
+        idx = data.libs.length - 1;
       }
     }
     writeSave();
@@ -196,7 +199,10 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
                       ],
                     ),
                   btnSelected != -1 && btnSelected != 1
-                      ? getBookReview(book)
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: getBookReview(book),
+                        )
                       : Container(),
                   ListTile(
                     leading: const Icon(Icons.title),

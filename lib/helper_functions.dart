@@ -219,7 +219,7 @@ Future<List<Book>> queryBooks(String query) async {
 DecorationImage getDecorationImage(String imgUrl) {
   DecorationImage decorationImage = const DecorationImage(
     colorFilter: ColorFilter.mode(Colors.grey, BlendMode.modulate),
-    fit: BoxFit.cover,
+    fit: BoxFit.none,
     image: AssetImage('assets/imgs/logo.png'),
   );
   if (imgUrl != '') {
@@ -260,7 +260,7 @@ Drawer getDrawer(BuildContext context) {
         ListTile(
           leading: const Icon(Icons.history),
           title: Text(
-            "previousGoals".tr(),
+            "allGoals".tr(),
             textAlign: TextAlign.center,
           ),
           onTap: () {

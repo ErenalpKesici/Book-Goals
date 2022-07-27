@@ -65,7 +65,7 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
       },
       child: Scaffold(
           appBar: AppBar(
-            title: FittedBox(child: Text('Backup/Restore'.tr())),
+            title: FittedBox(child: Text('backup_restore'.tr())),
             centerTitle: true,
           ),
           body: Center(

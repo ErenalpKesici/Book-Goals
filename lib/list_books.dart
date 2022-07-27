@@ -122,7 +122,8 @@ class ListBookPage extends State<ListBookPageSend> {
                     child: Container(
                       decoration: BoxDecoration(
                           image: getDecorationImage(
-                              data.goals[idx!].books![innerIdx].imgUrl!)),
+                              data.goals[idx!].books![innerIdx].imgUrl!),
+                          borderRadius: BorderRadius.circular(10)),
                       child: ListTile(
                         title: Text(
                           data.goals[idx!].books![innerIdx].title!,

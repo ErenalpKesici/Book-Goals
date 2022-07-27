@@ -71,7 +71,9 @@ class LibraryPage extends State<LibraryPageSend> {
         tag: book.id!,
         child: Material(
           child: Container(
-            decoration: BoxDecoration(image: getDecorationImage(book.imgUrl!)),
+            decoration: BoxDecoration(
+                image: getDecorationImage(book.imgUrl!),
+                borderRadius: BorderRadius.circular(10)),
             child: Slidable(
               startActionPane: ActionPane(
                 motion: const StretchMotion(),
@@ -79,13 +81,13 @@ class LibraryPage extends State<LibraryPageSend> {
                   SlidableAction(
                     onPressed: (BuildContext context) {
                       setState(() {
-                        if (idx < data.libs.length)
+                        if (idx < data.libs.length) {
                           data.libs.removeAt(idx);
-                        else {
-                          data.goals.forEach((element) => element.books
-                              ?.removeWhere((element) =>
-                                  element ==
-                                  goalBooks[idx - data.libs.length]));
+                        } else {
+                          for (var element in data.goals) {
+                            element.books?.removeWhere((element) =>
+                                element == goalBooks[idx - data.libs.length]);
+                          }
                           goalBooks.removeAt(idx - data.libs.length);
                         }
                       });
@@ -145,17 +147,23 @@ class LibraryPage extends State<LibraryPageSend> {
       child: DefaultTabController(
         length: 4,
         child: Scaffold(
-          bottomNavigationBar: BottomNavigationBar(
-            showUnselectedLabels: false,
-            currentIndex: currentNavIdx,
-            onTap: (int idx) {
-              if (currentNavIdx != idx) {
-                setState(() {
-                  updateNav(idx, currentNavIdx, context);
-                });
-              }
-            },
-            items: getNavs(),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                    top: BorderSide(color: Theme.of(context).primaryColor))),
+            child: BottomNavigationBar(
+              showUnselectedLabels: false,
+              currentIndex: currentNavIdx,
+              onTap: (int idx) {
+                if (currentNavIdx != idx) {
+                  setState(() {
+                    updateNav(idx, currentNavIdx, context);
+                  });
+                }
+              },
+              items: getNavs(),
+            ),
           ),
           appBar: AppBar(
             title: Text("myLibrary".tr()),

@@ -7,18 +7,18 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:561150257019:android:9a2b89ee94f816bbb67fde",
+        "mobilesdk_app_id": "1:561150257019:android:736effb206fc84d5b67fde",
         "android_client_info": {
           "package_name": "com.pobol.book_goals"
         }
       },
       "oauth_client": [
         {
-          "client_id": "561150257019-dvv4llpmhd09ftbe8mgl6oted8be1m50.apps.googleusercontent.com",
+          "client_id": "561150257019-do44s7misq2f2atv99qrhq8mr1nqg7gd.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.pobol.book_goals",
-            "certificate_hash": "04c566d079e07c99d6568f00090a75815436c66b"
+            "certificate_hash": "8a6c44be47188939a6579cc8c1063721adc48e07"
           }
         },
         {

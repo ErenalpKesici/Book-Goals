@@ -29,7 +29,7 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
     return Scaffold(
       drawer: getDrawer(context),
       appBar: AppBar(
-        title: Text("previousGoals".tr()),
+        title: Text("allGoals".tr()),
       ),
       body: ListView.builder(
         itemCount: data.goals.length,
