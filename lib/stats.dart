@@ -48,6 +48,8 @@ class StatsPage extends State<StatsPageSend> {
       case (3):
         return DateTime(
             DateTime.now().year - 1, DateTime.now().month, DateTime.now().day);
+      case (4):
+        return DateTime(1800, 1, 1);
     }
     return DateTime.now();
   }
@@ -146,10 +148,13 @@ class StatsPage extends State<StatsPageSend> {
         ],
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           SfCartesianChart(
-              title: ChartTitle(text: 'numberOfReadBooks'.tr()),
+              title: ChartTitle(
+                  text: 'numberOfReadBooks'.tr(),
+                  textStyle: TextStyle(fontWeight: FontWeight.bold),
+                  borderWidth: 1),
               primaryXAxis: CategoryAxis(),
               series: <ChartSeries<StatsData, String>>[
                 LineSeries<StatsData, String>(

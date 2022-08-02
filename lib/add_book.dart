@@ -94,7 +94,7 @@ class AddBookPage extends State<AddBookPageSend> {
                           content: const Text("Book already exists.")));
                     }
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const MyHomePage()));
+                        builder: (context) => MyHomePage.init()));
                   },
                   icon: const Icon(Icons.task_alt_rounded),
                   label: const Text("Save"))

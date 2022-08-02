@@ -1,6 +1,7 @@
 import 'package:book_goals/library.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'book.dart';
 import 'book_action_details.dart';
@@ -9,15 +10,18 @@ import 'helper_functions.dart';
 import 'main.dart';
 
 class SearchPageSend extends StatefulWidget {
-  SearchPageSend();
+  String? query;
+  SearchPageSend(this.query);
   @override
   State<StatefulWidget> createState() {
-    return SearchPage();
+    return SearchPage(query);
   }
 }
 
 class SearchPage extends State<SearchPageSend> {
+  SearchPage(this.query);
   int currentNavIdx = 1;
+  String? query;
   TextEditingController tecQuery = TextEditingController(text: '');
   List<Book> booksFound = List.empty(growable: true);
   Future? futureTitles;
@@ -26,6 +30,12 @@ class SearchPage extends State<SearchPageSend> {
   void initState() {
     futureTitles = queryBooks(tecQuery.text);
     super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      setState(() {
+        tecQuery.text = query ?? '';
+        futureTitles = queryBooks(tecQuery.text);
+      });
+    });
   }
 
   @override
@@ -43,7 +53,7 @@ class SearchPage extends State<SearchPageSend> {
           onTap: (int idx) {
             if (currentNavIdx != idx) {
               setState(() {
-                updateNav(idx, currentNavIdx, context);
+                // updateNav(idx, currentNavIdx, context);
               });
             }
           },
@@ -69,6 +79,7 @@ class SearchPage extends State<SearchPageSend> {
                 setState(() {
                   futureTitles = queryBooks(tecQuery.text);
                 });
+                query = tecQuery.text;
               },
             ),
           ),
@@ -108,8 +119,8 @@ class SearchPage extends State<SearchPageSend> {
                                             transitionDuration:
                                                 const Duration(seconds: 1),
                                             pageBuilder: (_, __, ___) =>
-                                                BookActionDetailsPageSend(
-                                                    book, SearchPageSend())));
+                                                BookActionDetailsPageSend(book,
+                                                    SearchPageSend(query))));
                                   },
                                 ),
                               ),

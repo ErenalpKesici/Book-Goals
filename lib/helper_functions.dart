@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:book_goals/preferences.dart';
-import 'package:book_goals/search.dart';
 import 'package:book_goals/settings_page.dart';
 import 'package:book_goals/stats.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,7 +17,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:isolate';
 import 'backup_restore.dart';
 import 'book.dart';
-import 'library_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'main.dart';
 import 'old_goals.dart';
@@ -33,7 +31,8 @@ List<String> getPeriods() {
     '30_days'.tr(),
     '3_months'.tr(),
     '6_months'.tr(),
-    '1_years'.tr()
+    '1_years'.tr(),
+    "all_time".tr()
   ];
 }
 
@@ -233,14 +232,22 @@ DecorationImage getDecorationImage(String imgUrl) {
 
 Drawer getDrawer(BuildContext context) {
   return Drawer(
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+          topRight: Radius.circular(20), bottomRight: Radius.circular(20)),
+    ),
     backgroundColor: Colors.black45,
     child: ListView(
       children: [
         const DrawerHeader(
             child: Image(
           image: AssetImage('assets/imgs/logo.png'),
-          fit: BoxFit.fitHeight,
+          fit: BoxFit.scaleDown,
         )),
+        Divider(
+          height: 16,
+          color: Theme.of(context).primaryColor,
+        ),
         ListTile(
           leading: const Icon(Icons.home),
           title: Text(
@@ -251,7 +258,7 @@ Drawer getDrawer(BuildContext context) {
             if (context.widget.toString() != "MyHomePage") {
               Navigator.of(context).pop();
               Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const MyHomePage()));
+                  MaterialPageRoute(builder: (context) => MyHomePage.init()));
             } else {
               Navigator.of(context).pop();
             }
@@ -325,155 +332,12 @@ List<BottomNavigationBarItem> getNavs() {
   ];
 }
 
-void updateNav(int idx, currentNavIdx, BuildContext context) {
-  switch (idx) {
-    case (0):
-      currentNavIdx = 0;
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const MyHomePage()));
-      break;
-    case (1):
-      currentNavIdx = 1;
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => SearchPageSend()));
-      break;
-    case (2):
-      currentNavIdx = 1;
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => LibraryPageSend()));
-      break;
-  }
-}
-
 ReceivePort _port = ReceivePort();
 void downloadCallback(
     String id, DownloadTaskStatus status, int progress) async {
   final SendPort? send =
       IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
-}
-
-void tryUpdate(BuildContext context) async {
-  return;
-  if (await Permission.storage.request() == PermissionStatus.granted) {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String status = "Would you like to update?";
-    int? statusVal;
-    http.Response response = await http.get(Uri.parse(
-        'https://github.com/ErenalpKesici/Book-Goals/releases/tag/v1.2'));
-    dom.Document document = parse(response.body);
-    String url = "https://www.github.com" +
-        document
-            .getElementsByClassName('Box-row')[0]
-            .children[1]
-            .attributes
-            .values
-            .first;
-    String latestVersion = url.split('/').last.split('-')[1];
-    if (packageInfo.version.compareTo(latestVersion) > -1) {
-      if (context.widget.toString() == "SettingsPageSend") {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: Theme.of(context).hintColor,
-            content: const Text("You are already on the latest version.")));
-      }
-    } else {
-      await showDialog(
-          barrierDismissible: false,
-          context: context,
-          builder: (context) {
-            return StatefulBuilder(
-              builder: (BuildContext context,
-                  void Function(void Function()) setInnerState) {
-                return AlertDialog(
-                  title: Text(
-                    "Current Version: " +
-                        packageInfo.version +
-                        " Latest Version: " +
-                        latestVersion,
-                    textAlign: TextAlign.center,
-                  ),
-                  content: statusVal == null
-                      ? Text(
-                          status,
-                          textAlign: TextAlign.center,
-                        )
-                      : LinearProgressIndicator(
-                          value: statusVal! / 100,
-                        ),
-                  actions: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                            onPressed: status != "Would you like to update?"
-                                ? null
-                                : () {
-                                    Navigator.pop(context);
-                                  },
-                            child: const Text("No")),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        ElevatedButton(
-                            onPressed: status != "Would you like to update?"
-                                ? null
-                                : () async {
-                                    await FlutterDownloader.initialize(
-                                        debug: true);
-                                    final externalDir =
-                                        await getExternalStorageDirectory();
-                                    List dirs =
-                                        await Directory(externalDir!.path)
-                                            .list()
-                                            .toList();
-                                    for (File dir in dirs) {
-                                      String fileName =
-                                          dir.path.split('/').last;
-                                      if (fileName.contains('app')) {
-                                        await dir.delete();
-                                        break;
-                                      }
-                                    }
-                                    IsolateNameServer.registerPortWithName(
-                                        _port.sendPort, 'downloader_send_port');
-                                    FlutterDownloader.registerCallback(
-                                        downloadCallback);
-                                    _port.listen((dynamic data) async {
-                                      setInnerState(() {
-                                        status = data[2].toString();
-                                        statusVal = int.tryParse(status);
-                                      });
-                                      if (data[1] ==
-                                          const DownloadTaskStatus(3)) {
-                                        FlutterDownloader.open(taskId: data[0]);
-                                      }
-                                    });
-                                    await FlutterDownloader.enqueue(
-                                      url: url,
-                                      showNotification: false,
-                                      savedDir: externalDir.path,
-                                    );
-                                  },
-                            child: const Text("Yes")),
-                      ],
-                    )
-                  ],
-                );
-              },
-            );
-          });
-    }
-  }
-  Container getGradient() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: <Color>[Colors.deepPurple, Theme.of(context).primaryColor]),
-      ),
-    );
-  }
 }
 
 void reviewBook(BuildContext context, Book book) async {

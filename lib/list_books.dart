@@ -33,7 +33,7 @@ class ListBookPage extends State<ListBookPageSend> {
     return WillPopScope(
       onWillPop: () async {
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const MyHomePage()));
+            .push(MaterialPageRoute(builder: (context) => MyHomePage.init()));
         return false;
       },
       child: Scaffold(
@@ -98,7 +98,7 @@ class ListBookPage extends State<ListBookPageSend> {
                                           Navigator.of(context).push(
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                      const MyHomePage()));
+                                                      MyHomePage.init()));
                                         },
                                         child: Text("yes".tr())),
                                   ],

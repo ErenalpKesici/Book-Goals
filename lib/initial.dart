@@ -25,6 +25,7 @@ class InitialPage extends State<InitialPageSend> {
   TextEditingController password = TextEditingController();
   GoogleSignInAccount? googleAccount;
   GoogleSignIn googleSignIn = GoogleSignIn();
+  bool passHidden = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +54,22 @@ class InitialPage extends State<InitialPageSend> {
                   child: TextField(
                     controller: password,
                     textAlign: TextAlign.center,
+                    obscureText: passHidden,
                     decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                          color: passHidden
+                              ? Colors.grey
+                              : Theme.of(context).primaryColor,
+                          icon: Icon(Icons.remove_red_eye_outlined),
+                          onPressed: () {
+                            setState(() {
+                              if (passHidden)
+                                passHidden = false;
+                              else
+                                passHidden = true;
+                            });
+                          },
+                        ),
                         labelText: 'pass'.tr(),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10))),
@@ -64,7 +80,6 @@ class InitialPage extends State<InitialPageSend> {
                   icon: const Icon(Icons.login),
                   label: Text("login".tr()),
                   onPressed: () async {
-                    print(email.text + " " + password.text);
                     if (email.text != "" && password.text != "") {
                       email.text = email.text.trim();
                       password.text = password.text.trim();

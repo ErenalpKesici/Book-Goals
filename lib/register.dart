@@ -106,7 +106,7 @@ class RegisterPage extends State<RegisterPageSend> {
                             content:
                                 Text('welcome'.tr().toString() + name.text)));
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => MyHomePage()));
+                            builder: (context) => MyHomePage.init()));
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(new SnackBar(
                             content: Text('alertFormat'.tr().toString())));

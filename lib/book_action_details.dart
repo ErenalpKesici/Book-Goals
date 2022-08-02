@@ -1,5 +1,4 @@
 import 'package:book_goals/helper_functions.dart';
-import 'package:book_goals/library_page.dart';
 import 'package:book_goals/list_books.dart';
 import 'package:book_goals/main.dart';
 import 'package:book_goals/settings.dart';
@@ -27,12 +26,11 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
   final Widget sender;
   int btnSelected = -1;
   int? idx;
-  List<String> actions = ["Reading", "Want to Read", "Read", "Just Read"];
+  List<String> actions = ["Reading", "Want to Read", "Read"];
   List<String> actionsTranslated = [
     "reading".tr(),
     "wantToRead".tr(),
     "read".tr(),
-    "justRead".tr()
   ];
   DateTime? readDate = DateTime.now();
   BookActionDetailsPage(this.book, this.sender);
@@ -141,63 +139,61 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
                       ],
                     ),
                   if (sender.runtimeType != ListBookPageSend)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: btnSelected != 2
-                              ? () async {
-                                  if (null !=
-                                      (readDate = await showDatePicker(
-                                          helpText: 'finishedDate'.tr(),
-                                          builder: (context, child) => Theme(
-                                                data:
-                                                    ThemeData.light().copyWith(
-                                                  dialogBackgroundColor: Colors
-                                                      .white, //Background color
-                                                ),
-                                                child: child!,
-                                              ),
-                                          context: context,
-                                          initialDate: DateTime.now(),
-                                          firstDate: DateTime(2000, 1, 1),
-                                          lastDate: DateTime.now()))) {
-                                    setState(() {
-                                      btnSelected = 2;
-                                    });
-                                    updateLibs(actions[2]);
-                                  }
-                                }
-                              : null,
-                          icon: const Icon(Icons.done_rounded),
-                          label: Text(
-                              btnSelected != 2
-                                  ? actionsTranslated[2]
-                                  : 'finishedDate'.tr() +
-                                      ': ' +
-                                      DateFormat('yyyy-MM-dd')
-                                          .format(book.date!),
-                              style: TextStyle(
-                                  color: btnSelected != 2
-                                      ? Colors.white
-                                      : Colors.grey)),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        ElevatedButton.icon(
-                            onPressed: btnSelected != 3
-                                ? () {
-                                    setState(() {
-                                      btnSelected = 3;
-                                    });
-                                    updateLibs(actions[3]);
-                                  }
-                                : null,
-                            icon: const Icon(Icons.done_outline),
-                            label: Text(actionsTranslated[3])),
-                      ],
+                    ElevatedButton.icon(
+                      onPressed: btnSelected != 2
+                          ? () async {
+                              if (null !=
+                                  (readDate = await showDatePicker(
+                                      helpText: 'finishedDate'.tr(),
+                                      builder: (context, child) => Theme(
+                                            data: ThemeData.light().copyWith(
+                                              dialogBackgroundColor: Colors
+                                                  .white, //Background color
+                                            ),
+                                            child: child!,
+                                          ),
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2000, 1, 1),
+                                      lastDate: DateTime.now()))) {
+                                setState(() {
+                                  btnSelected = 2;
+                                });
+                                updateLibs(actions[2]);
+                              }
+                            }
+                          : null,
+                      icon: const Icon(Icons.done_rounded),
+                      label: Text(
+                          btnSelected != 2
+                              ? actionsTranslated[2]
+                              : 'finishedDate'.tr() +
+                                  ': ' +
+                                  DateFormat('yyyy-MM-dd').format(book.date!),
+                          style: TextStyle(
+                              color: btnSelected != 2
+                                  ? Colors.white
+                                  : Colors.grey)),
                     ),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     const SizedBox(
+                  //       width: 20,
+                  //     ),
+                  //     ElevatedButton.icon(
+                  //         onPressed: btnSelected != 3
+                  //             ? () {
+                  //                 setState(() {
+                  //                   btnSelected = 3;
+                  //                 });
+                  //                 updateLibs(actions[3]);
+                  //               }
+                  //             : null,
+                  //         icon: const Icon(Icons.done_outline),
+                  //         label: Text(actionsTranslated[3])),
+                  //   ],
+                  // ),
                   btnSelected != -1 && btnSelected != 1
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),

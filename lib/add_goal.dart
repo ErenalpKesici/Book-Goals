@@ -162,8 +162,8 @@ class AddGoalPage extends State<AddGoalPageSend> {
                             multiplierInDays(durations.indexWhere(
                                 (element) => element == goalDurationType!)))));
                 writeSave();
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const MyHomePage()));
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => MyHomePage.init()));
               }
             },
             icon: const Icon(Icons.task_alt_rounded),

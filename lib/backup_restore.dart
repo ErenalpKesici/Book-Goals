@@ -60,7 +60,7 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
     return WillPopScope(
       onWillPop: () async {
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const MyHomePage()));
+            .push(MaterialPageRoute(builder: (context) => MyHomePage.init()));
         return false;
       },
       child: Scaffold(
@@ -74,7 +74,10 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(32.0),
-                  child: Text("signedInAccount".tr() + ' ' + user!.email!),
+                  child: Text(
+                    "signedInAccount".tr() + '  -  ' + user!.email!,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -133,7 +136,7 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
                                   user!.email!)));
                           update = true;
                           Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const MyHomePage()));
+                              builder: (context) => MyHomePage.init()));
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               backgroundColor:
@@ -181,7 +184,7 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
                                           'Successfully backed up to ' +
                                               user!.email!)));
                               Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => const MyHomePage()));
+                                  builder: (context) => MyHomePage.init()));
                             }
                           },
                           label: Text("backup".tr())),

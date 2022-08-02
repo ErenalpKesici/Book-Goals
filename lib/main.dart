@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:book_goals/AuthenticationServices.dart';
 import 'package:book_goals/add_book.dart';
 import 'package:book_goals/book.dart';
 import 'package:book_goals/library.dart';
-import 'package:book_goals/library_page.dart';
-import 'package:book_goals/search.dart';
 import 'package:book_goals/settings.dart';
 import 'package:book_goals/user.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -14,12 +13,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'AuthenticationWrapper.dart';
 import 'add_goal.dart';
+import 'book_action_details.dart';
 import 'data.dart';
 import 'helper_functions.dart';
 import 'list_books.dart';
@@ -208,7 +211,7 @@ Future<void> alertUser(BuildContext context, String title) async {
                     data.goals.add(Settings.empty());
                     writeSave();
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const MyHomePage()));
+                        builder: (context) => MyHomePage(0, '')));
                   },
                   child: Text("ok".tr()))
             ],
@@ -314,7 +317,7 @@ class MyApp extends StatelessWidget {
               brightness: Brightness.dark,
               secondary: Colors.teal[200],
             )),
-        home: const MyHomePage(),
+        home: MyHomePage(0, ''),
       ),
     );
   }
@@ -457,8 +460,7 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
                                                       goalDurationType!)))));
                                   writeSave();
                                   Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) =>
-                                          const MyHomePage()));
+                                      builder: (context) => MyHomePage(0, '')));
                                 }
                               },
                               icon: const Icon(Icons.task_alt_rounded),
@@ -509,16 +511,169 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  int? currentNavIdx;
+  String? query;
+  MyHomePage.init();
+  MyHomePage(this.currentNavIdx, this.query);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState(currentNavIdx, query);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int currentNavIdx = 0;
-  @override
-  void initState() {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  int? currentNavIdx;
+  List appbars = List.filled(3, null);
+  List bodies = List.filled(3, null);
+  _MyHomePageState(this.currentNavIdx, this.query);
+
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(seconds: 3),
+    vsync: this,
+  )..forward();
+  late final Animation<double> _animation = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.bounceIn,
+  );
+
+  String? query;
+  TextEditingController tecQuery = TextEditingController(text: '');
+  List<Book> booksFound = List.empty(growable: true);
+  Future? futureTitles;
+  List<String> bookAction = List.empty();
+
+  List<Book> goalBooks = List.empty(growable: true);
+  ScrollController mainScrollController = ScrollController();
+  Widget getList(String message) {
+    int length = data.libs.length;
+    length += (message == '' || message == 'Read') && goalBooks.isNotEmpty
+        ? goalBooks.length
+        : 0;
+    return SingleChildScrollView(
+      child: ListView.builder(
+        shrinkWrap: true,
+        controller: mainScrollController,
+        itemCount: length,
+        reverse: true,
+        itemBuilder: (BuildContext context, int idx) {
+          if (idx < data.libs.length) {
+            if (message == "" ||
+                idx < data.libs.length && data.libs[idx].message == message) {
+              return getCard(idx, data.libs[idx].book!);
+            }
+          } else {
+            return getCard(idx, goalBooks[idx - data.libs.length]);
+          }
+          return Container();
+        },
+      ),
+    );
+  }
+
+  Widget getReadForGoals() {
+    if (goalBooks.isNotEmpty) {
+      return Expanded(
+        child: ListView.builder(
+          controller: mainScrollController,
+          itemCount: goalBooks.length,
+          itemBuilder: (BuildContext context, int idx) {
+            int reverseIdx = goalBooks.length - 1 - idx;
+            return getCard(reverseIdx, goalBooks[reverseIdx]);
+          },
+        ),
+      );
+    }
+    return Expanded(
+      child: Container(),
+    );
+  }
+
+  Card getCard(int idx, Book book) {
+    return Card(
+      child: Hero(
+        tag: book.id!,
+        child: Material(
+          child: Container(
+            decoration: BoxDecoration(
+                image: getDecorationImage(book.imgUrl!),
+                borderRadius: BorderRadius.circular(10)),
+            child: Slidable(
+              startActionPane: ActionPane(
+                motion: const StretchMotion(),
+                children: [
+                  SlidableAction(
+                    onPressed: (BuildContext context) {
+                      setState(() {
+                        if (idx < data.libs.length) {
+                          data.libs.removeAt(idx);
+                        } else {
+                          for (var element in data.goals) {
+                            element.books?.removeWhere((element) =>
+                                element == goalBooks[idx - data.libs.length]);
+                          }
+                          goalBooks.removeAt(idx - data.libs.length);
+                        }
+                      });
+                      writeSave();
+                    },
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete,
+                    label: 'Delete',
+                  ),
+                ],
+              ),
+              child: ListTile(
+                minVerticalPadding: 10,
+                isThreeLine: true,
+                title: Text(book.title!, style: getCardTextStyle()),
+                subtitle: Text(
+                    book.authors!.isNotEmpty == true ? book.authors!.first : '',
+                    style: getCardTextStyle()),
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                          transitionDuration: const Duration(seconds: 1),
+                          pageBuilder: (_, __, ___) =>
+                              BookActionDetailsPageSend(
+                                  book, MyHomePage(2, ''))));
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget getBottomNav() {
+    return StatefulBuilder(
+      builder:
+          (BuildContext context, void Function(void Function()) setInnerState) {
+        return Container(
+          decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                  top: BorderSide(color: Theme.of(context).primaryColor))),
+          child: BottomNavigationBar(
+            showUnselectedLabels: false,
+            currentIndex: currentNavIdx!,
+            onTap: (int idx) {
+              if (currentNavIdx != idx) {
+                setInnerState(() {
+                  currentNavIdx = idx;
+                });
+                setState(() {});
+              }
+            },
+            items: getNavs(),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _doInit() async {
     tryBackup();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       final prefs = await SharedPreferences.getInstance();
@@ -529,333 +684,585 @@ class _MyHomePageState extends State<MyHomePage> {
       if (EasyLocalization.of(context)!.locale != Locale(lang!)) {
         EasyLocalization.of(context)!.setLocale(Locale(lang));
       }
+      for (var goal in data.goals) {
+        if (goal.books != null) {
+          for (var book in goal.books!) {
+            goalBooks.add(book);
+          }
+        }
+      }
     });
+  }
+
+  Future<String?> _getIsbnFromPicture(bool camera) async {
+    final List<BarcodeFormat> formats = [BarcodeFormat.all];
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(
+        source: camera ? ImageSource.camera : ImageSource.gallery);
+    if (image == null) return null;
+    final barcodeScanner = BarcodeScanner(formats: formats);
+    final List<Barcode> barcodes = await barcodeScanner
+        .processImage(InputImage.fromFile(File(image.path)));
+    barcodeScanner.close();
+    if (barcodes.isNotEmpty) {
+      return barcodes.first.displayValue;
+    }
+    return null;
+  }
+
+  @override
+  void initState() {
     super.initState();
+    currentNavIdx = currentNavIdx ?? 0;
+    tecQuery.text = query ?? '';
+    futureTitles = queryBooks(tecQuery.text);
+    FocusNode? focusNode;
+    bodies[0] = StatefulBuilder(
+      builder:
+          (BuildContext context, void Function(void Function()) setInState) {
+        SchedulerBinding.instance.addPostFrameCallback((_) async {
+          setState(() {
+            appbars[0] = AppBar(
+              title: Text('app_name'.tr()),
+              actions: [
+                PopupMenuButton<String>(
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      child: Text('abortGoal'.tr()),
+                      onTap: () {
+                        Future.delayed(
+                            const Duration(seconds: 0),
+                            () => showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                      title: Text(
+                                        'confirmAbortGoal'.tr(),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      content: data.goals.last.goalBooks != 0 &&
+                                              data.goals.last.books!.length /
+                                                      data.goals.last
+                                                          .goalBooks! ==
+                                                  0
+                                          ? const Text('')
+                                          : Text(
+                                              'confirmAbortGoal_1'.tr() +
+                                                  ' ' +
+                                                  (data.goals.last.books!
+                                                              .length /
+                                                          data.goals.last
+                                                              .goalBooks! *
+                                                          100)
+                                                      .ceil()
+                                                      .toString() +
+                                                  '% ' +
+                                                  'confirmAbortGoal_2'.tr() +
+                                                  '...',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                      actions: [
+                                        ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('no'.tr())),
+                                        ElevatedButton(
+                                            onPressed: () {
+                                              data.goals.removeLast();
+                                              data.goals.add(Settings.empty());
+                                              writeSave();
+                                              setInState(() {});
+                                            },
+                                            child: Text('yes'.tr()))
+                                      ],
+                                      actionsAlignment:
+                                          MainAxisAlignment.center,
+                                    )));
+                      },
+                    )
+                  ],
+                )
+              ],
+            );
+          });
+        });
+        return ConfettiWidget(
+          confettiController: confettiController,
+          numberOfParticles: 100,
+          blastDirection: 90,
+          blastDirectionality: BlastDirectionality.explosive,
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  FutureBuilder(
+                    future: readSave(context),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<dynamic> snapshot) {
+                      if (snapshot.hasData) {
+                        if ((!snapshot.data &&
+                                data.goals.last.goalBooks! > 0) ||
+                            (data.goals.isNotEmpty &&
+                                data.goals.last.goalBooks! > 0)) {
+                          daysRemaining = data.goals.last.dateEnd!
+                                  .difference(DateTime.now())
+                                  .inDays +
+                              1;
+                          booksLeft = data.goals.last.goalBooks! -
+                              data.goals.last.books!.length;
+                          bookRequiredForGoal = findBookFrequency();
+                          return Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (data.goals.last.books!.isNotEmpty) {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ListBookPageSend(
+                                                        idx: data.goals.length -
+                                                            1)));
+                                      }
+                                    },
+                                    child: Tooltip(
+                                      message: data.goals.last.books!.length
+                                              .toString() +
+                                          "/" +
+                                          data.goals.last.goalBooks!.toString(),
+                                      child: Stack(
+                                        children: [
+                                          SizedBox(
+                                            width: 200,
+                                            height: 200,
+                                            child: CircularProgressIndicator(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                              value: data.goals.last.books!
+                                                      .length /
+                                                  data.goals.last.goalBooks!,
+                                            ),
+                                          ),
+                                          Positioned(
+                                              bottom: 10,
+                                              left: 10,
+                                              right: 10,
+                                              top: 10,
+                                              child: Container(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          16, 4, 16, 0),
+                                                  child: Column(
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .fromLTRB(
+                                                                16, 16, 16, 0),
+                                                        child: Text(
+                                                          "maintext_1".tr(),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: const TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontStyle:
+                                                                  FontStyle
+                                                                      .italic,
+                                                              fontSize: 16),
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .fromLTRB(
+                                                                0, 24, 0, 16),
+                                                        child: Text(
+                                                          (data.goals.last.books!
+                                                                          .length /
+                                                                      data
+                                                                          .goals
+                                                                          .last
+                                                                          .goalBooks! *
+                                                                      100)
+                                                                  .ceil()
+                                                                  .toString() +
+                                                              "%",
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              shadows: [
+                                                                Shadow(
+                                                                    color: Colors
+                                                                        .black
+                                                                        .withOpacity(
+                                                                            .3),
+                                                                    offset:
+                                                                        const Offset(
+                                                                            5,
+                                                                            4),
+                                                                    blurRadius:
+                                                                        10)
+                                                              ],
+                                                              color:
+                                                                  Colors.black,
+                                                              fontStyle:
+                                                                  FontStyle
+                                                                      .italic,
+                                                              fontSize: 32),
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .fromLTRB(
+                                                                16, 16, 16, 0),
+                                                        child: Text(
+                                                          "maintext_2".tr(),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontStyle:
+                                                                  FontStyle
+                                                                      .italic,
+                                                              fontSize: 16),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end: Alignment
+                                                            .centerRight,
+                                                        colors: [
+                                                          Theme.of(context)
+                                                              .primaryColor,
+                                                          bookRequiredForGoal ==
+                                                                  0
+                                                              ? Colors.white
+                                                              : Color.fromRGBO(
+                                                                  (255 / bookRequiredForGoal)
+                                                                      .ceil(),
+                                                                  127,
+                                                                  255,
+                                                                  1)
+                                                        ]),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                          spreadRadius: 1,
+                                                          offset: Offset(12, 5),
+                                                          blurRadius: 5)
+                                                    ],
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                    shape: BoxShape.circle),
+                                              ))
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 25,
+                              ),
+                              if (daysRemaining != -1)
+                                ListTile(
+                                  leading: const Icon(
+                                    Icons.date_range_sharp,
+                                  ),
+                                  title: Text(
+                                    'daysRemaining'.tr() +
+                                        ":    " +
+                                        daysRemaining.toString(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        wordSpacing: 3, letterSpacing: 1),
+                                  ),
+                                ),
+                              if (booksLeft != -1)
+                                ListTile(
+                                  leading: const Icon(
+                                    Icons.book,
+                                  ),
+                                  title: Text(
+                                    'booksLeft'.tr() +
+                                        ":    " +
+                                        booksLeft.toString(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        wordSpacing: 3, letterSpacing: 1),
+                                  ),
+                                ),
+                              Divider(),
+                              if (bookRequiredForGoal != -1)
+                                ListTile(
+                                    leading: const Icon(Icons.lightbulb),
+                                    title: Text(
+                                      "goalBookFrequency_1".tr() +
+                                          ' ' +
+                                          bookRequiredForGoal.toString() +
+                                          ' ' +
+                                          "goalBookFrequency_2".tr(),
+                                      style: const TextStyle(
+                                          wordSpacing: 3, letterSpacing: 1),
+                                      textAlign: TextAlign.center,
+                                    )),
+                            ],
+                          );
+                        } else {
+                          SchedulerBinding.instance
+                              .addPostFrameCallback((_) async {
+                            alertModifyGoal(context, false);
+                          });
+                        }
+                      }
+                      return const CircularProgressIndicator();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    bodies[1] = Center(
+      child: StatefulBuilder(
+        builder:
+            (BuildContext context, void Function(void Function()) setInState) {
+          SchedulerBinding.instance.addPostFrameCallback((_) async {
+            setState(() {
+              appbars[1] = AppBar(
+                title: TextField(
+                  style: TextStyle(color: Colors.black),
+                  focusNode: focusNode,
+                  controller: tecQuery,
+                  decoration: InputDecoration(
+                    hintText: 'enterQueryBook'.tr(),
+                    hintStyle: TextStyle(color: Colors.black),
+                  ),
+                  onChanged: (String? value) {
+                    setInState(() {
+                      futureTitles = queryBooks(tecQuery.text);
+                    });
+                    query = tecQuery.text;
+                  },
+                ),
+                actions: [
+                  IconButton(
+                      onPressed: () async {
+                        await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                                  alignment: Alignment.center,
+                                  actionsAlignment: MainAxisAlignment.center,
+                                  actionsPadding:
+                                      EdgeInsets.fromLTRB(0, 0, 0, 25),
+                                  title: Text(
+                                    'scanIsbn'.tr(),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  actions: [
+                                    GestureDetector(
+                                      onTap: () async {
+                                        Navigator.pop(context);
+                                        String? isbn =
+                                            await _getIsbnFromPicture(false);
+                                        if (isbn != null)
+                                          setInState(() {
+                                            tecQuery.text = isbn;
+                                            futureTitles =
+                                                queryBooks(tecQuery.text);
+                                          });
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.image),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Text('fromGallery'.tr())
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 25,
+                                    ),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        Navigator.pop(context);
+                                        String? isbn =
+                                            await _getIsbnFromPicture(true);
+                                        if (isbn != null)
+                                          setInState(() {
+                                            tecQuery.text = isbn;
+                                            futureTitles =
+                                                queryBooks(tecQuery.text);
+                                          });
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.photo_camera),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Text('fromCamera'.tr())
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ));
+                      },
+                      icon: Icon(Icons.qr_code_rounded))
+                ],
+              );
+            });
+          });
+          return FutureBuilder(
+            future: futureTitles,
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              if (snapshot.hasData) {
+                return ListView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    Book book = snapshot.data[index];
+                    if (book.title == null) return Container();
+                    return Card(
+                      child: Hero(
+                        tag: book.id!,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              image: getDecorationImage(book.imgUrl!),
+                              borderRadius: BorderRadius.circular(10)),
+                          child: ListTile(
+                            minVerticalPadding: 10,
+                            isThreeLine: true,
+                            title: Text(
+                              book.title!,
+                              style: TextStyle(shadows: [
+                                Shadow(
+                                  offset: Offset(2.0, 4.0),
+                                  blurRadius: 5,
+                                  color: Colors.black,
+                                ),
+                              ]),
+                            ),
+                            subtitle: Text(book.authors!.isNotEmpty == true
+                                ? book.authors!.first
+                                : ''),
+                            onTap: () {
+                              focusNode?.unfocus();
+                              Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                      transitionDuration:
+                                          const Duration(seconds: 1),
+                                      pageBuilder: (_, __, ___) =>
+                                          BookActionDetailsPageSend(
+                                              book, MyHomePage(1, query))));
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  itemCount: snapshot.data.length,
+                );
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          );
+        },
+      ),
+    );
+
+    TabController _tabController = new TabController(length: 4, vsync: this);
+
+    appbars[2] = AppBar(
+      title: Text("myLibrary".tr()),
+      bottom: TabBar(
+        controller: _tabController,
+        tabs: [
+          Tab(
+              icon: Icon(Icons.grid_on),
+              child: AutoSizeText(
+                "all".tr(),
+                maxLines: 2,
+                textAlign: TextAlign.center,
+              )),
+          Tab(
+              icon: Icon(Icons.timelapse_rounded),
+              child: AutoSizeText(
+                "reading".tr(),
+                maxLines: 2,
+                textAlign: TextAlign.center,
+              )),
+          Tab(
+              icon: Icon(Icons.bookmarks_rounded),
+              child: AutoSizeText(
+                "wantToRead".tr(),
+                maxLines: 2,
+                textAlign: TextAlign.center,
+              )),
+          Tab(
+              icon: Icon(Icons.done_rounded),
+              child: AutoSizeText(
+                "read".tr(),
+                maxLines: 2,
+                textAlign: TextAlign.center,
+              )),
+        ],
+      ),
+    );
+    bodies[2] = Column(
+      children: [
+        Flexible(
+          child: Column(
+            children: [
+              Expanded(
+                child: FutureBuilder(
+                  future: _doInit(),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                    return TabBarView(
+                      controller: _tabController,
+                      children: [
+                        getList(""),
+                        getList("Reading"),
+                        getList("Want to Read"),
+                        getList("Read"),
+                      ],
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ConfettiWidget(
-      confettiController: confettiController,
-      numberOfParticles: 100,
-      blastDirection: 90,
-      blastDirectionality: BlastDirectionality.explosive,
-      child: Scaffold(
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                  top: BorderSide(color: Theme.of(context).primaryColor))),
-          child: BottomNavigationBar(
-            showUnselectedLabels: false,
-            currentIndex: currentNavIdx,
-            onTap: (int idx) {
-              if (currentNavIdx != idx) {
-                setState(() {
-                  updateNav(idx, currentNavIdx, context);
-                });
-              }
-            },
-            items: getNavs(),
-          ),
-        ),
-        appBar: AppBar(
-          title: Text('app_name'.tr()),
-          actions: [
-            PopupMenuButton<String>(
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  child: Text('abortGoal'.tr()),
-                  onTap: () {
-                    Future.delayed(
-                        const Duration(seconds: 0),
-                        () => showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                                  title: Text(
-                                    'confirmAbortGoal'.tr(),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  content: data.goals.last.goalBooks != 0 &&
-                                          data.goals.last.books!.length /
-                                                  data.goals.last.goalBooks! ==
-                                              0
-                                      ? const Text('')
-                                      : Text(
-                                          'confirmAbortGoal_1'.tr() +
-                                              ' ' +
-                                              (data.goals.last.books!.length /
-                                                      data.goals.last
-                                                          .goalBooks! *
-                                                      100)
-                                                  .ceil()
-                                                  .toString() +
-                                              '% ' +
-                                              'confirmAbortGoal_2'.tr() +
-                                              '...',
-                                          textAlign: TextAlign.center,
-                                        ),
-                                  actions: [
-                                    ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text('no'.tr())),
-                                    ElevatedButton(
-                                        onPressed: () {
-                                          data.goals.removeLast();
-                                          data.goals.add(Settings.empty());
-                                          writeSave();
-                                          setState(() {});
-                                        },
-                                        child: Text('yes'.tr()))
-                                  ],
-                                  actionsAlignment: MainAxisAlignment.center,
-                                )));
-                  },
-                )
-              ],
-            )
-          ],
-        ),
-        drawer: getDrawer(context),
-        body: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                FutureBuilder(
-                  future: readSave(context),
-                  builder:
-                      (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                    if (snapshot.hasData) {
-                      if ((!snapshot.data && data.goals.last.goalBooks! > 0) ||
-                          (data.goals.isNotEmpty &&
-                              data.goals.last.goalBooks! > 0)) {
-                        daysRemaining = data.goals.last.dateEnd!
-                                .difference(DateTime.now())
-                                .inDays +
-                            1;
-                        booksLeft = data.goals.last.goalBooks! -
-                            data.goals.last.books!.length;
-                        bookRequiredForGoal = findBookFrequency();
-                        return Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    if (data.goals.last.books!.isNotEmpty) {
-                                      Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ListBookPageSend(
-                                                      idx: data.goals.length -
-                                                          1)));
-                                    }
-                                  },
-                                  child: Tooltip(
-                                    message: data.goals.last.books!.length
-                                            .toString() +
-                                        "/" +
-                                        data.goals.last.goalBooks!.toString(),
-                                    child: Stack(
-                                      children: [
-                                        SizedBox(
-                                          width: 200,
-                                          height: 200,
-                                          child: CircularProgressIndicator(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .secondary,
-                                            value:
-                                                data.goals.last.books!.length /
-                                                    data.goals.last.goalBooks!,
-                                          ),
-                                        ),
-                                        Positioned(
-                                            bottom: 10,
-                                            left: 10,
-                                            right: 10,
-                                            top: 10,
-                                            child: Container(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.fromLTRB(
-                                                        16, 4, 16, 0),
-                                                child: Column(
-                                                  children: [
-                                                    Padding(
-                                                      padding: const EdgeInsets
-                                                              .fromLTRB(
-                                                          16, 16, 16, 0),
-                                                      child: Text(
-                                                        "maintext_1".tr(),
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: const TextStyle(
-                                                            color: Colors.black,
-                                                            fontStyle: FontStyle
-                                                                .italic,
-                                                            fontSize: 16),
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding: const EdgeInsets
-                                                              .fromLTRB(
-                                                          0, 24, 0, 16),
-                                                      child: Text(
-                                                        (data.goals.last.books!
-                                                                        .length /
-                                                                    data
-                                                                        .goals
-                                                                        .last
-                                                                        .goalBooks! *
-                                                                    100)
-                                                                .ceil()
-                                                                .toString() +
-                                                            "%",
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: TextStyle(
-                                                            shadows: [
-                                                              Shadow(
-                                                                  color: Colors
-                                                                      .black
-                                                                      .withOpacity(
-                                                                          .3),
-                                                                  offset:
-                                                                      const Offset(
-                                                                          5, 4),
-                                                                  blurRadius:
-                                                                      10)
-                                                            ],
-                                                            color: Colors.black,
-                                                            fontStyle: FontStyle
-                                                                .italic,
-                                                            fontSize: 32),
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding: const EdgeInsets
-                                                              .fromLTRB(
-                                                          16, 16, 16, 0),
-                                                      child: Text(
-                                                        "maintext_2".tr(),
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: TextStyle(
-                                                            color: Colors.black,
-                                                            fontStyle: FontStyle
-                                                                .italic,
-                                                            fontSize: 16),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                      begin: Alignment.topLeft,
-                                                      end:
-                                                          Alignment.centerRight,
-                                                      colors: [
-                                                        Theme.of(context)
-                                                            .primaryColor,
-                                                        bookRequiredForGoal == 0
-                                                            ? Colors.white
-                                                            : Color.fromRGBO(
-                                                                (1 /
-                                                                        bookRequiredForGoal *
-                                                                        255)
-                                                                    .ceil(),
-                                                                127,
-                                                                255,
-                                                                1)
-                                                      ]),
-                                                  border: Border.all(
-                                                      color: Theme.of(context)
-                                                          .appBarTheme
-                                                          .backgroundColor!),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        spreadRadius: 1,
-                                                        offset: Offset(12, 5),
-                                                        blurRadius: 5)
-                                                  ],
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                                  shape: BoxShape.circle),
-                                            ))
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 25,
-                            ),
-                            if (daysRemaining != -1)
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.date_range_sharp,
-                                ),
-                                title: Text(
-                                  'daysRemaining'.tr() +
-                                      ":    " +
-                                      daysRemaining.toString(),
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      wordSpacing: 3, letterSpacing: 1),
-                                ),
-                              ),
-                            if (booksLeft != -1)
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.book,
-                                ),
-                                title: Text(
-                                  'booksLeft'.tr() +
-                                      ":    " +
-                                      booksLeft.toString(),
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      wordSpacing: 3, letterSpacing: 1),
-                                ),
-                              ),
-                            if (bookRequiredForGoal != -1)
-                              ListTile(
-                                  leading: const Icon(Icons.lightbulb),
-                                  title: Text(
-                                    "goalBookFrequency_1".tr() +
-                                        ' ' +
-                                        bookRequiredForGoal.toString() +
-                                        ' ' +
-                                        "goalBookFrequency_2".tr(),
-                                    style: const TextStyle(
-                                        wordSpacing: 3, letterSpacing: 1),
-                                    textAlign: TextAlign.center,
-                                  )),
-                          ],
-                        );
-                      } else {
-                        SchedulerBinding.instance
-                            .addPostFrameCallback((_) async {
-                          alertModifyGoal(context, false);
-                        });
-                      }
-                    }
-                    return const CircularProgressIndicator();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return Scaffold(
+      bottomNavigationBar: getBottomNav(),
+      appBar: appbars[currentNavIdx!],
+      body: bodies[currentNavIdx!],
+      drawer: getDrawer(context),
     );
   }
 }

@@ -71,8 +71,11 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
                     ? null
                     : () {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                OldGoalDetailsPageSend(dates, books[idx])));
+                            builder: (context) => OldGoalDetailsPageSend(
+                                dates,
+                                books[idx],
+                                data.goals[idx].goalBooks!,
+                                books[idx].length)));
                       },
                 title: Text(
                   dates,
