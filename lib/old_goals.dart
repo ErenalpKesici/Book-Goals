@@ -45,7 +45,10 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
             dates = DateFormat('yyyy-MM-dd')
                 .format(data.goals[data.goals.length - 1 - idx].dateStart!);
           }
-          Icon? iconStatus = const Icon(Icons.not_interested);
+          Icon? iconStatus = const Icon(
+            Icons.not_interested,
+            color: Colors.red,
+          );
           if (data.goals[data.goals.length - 1 - idx].dateEnd != null) {
             dates += ' - ' +
                 DateFormat('yyyy-MM-dd')
@@ -74,7 +77,8 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
                             builder: (context) => OldGoalDetailsPageSend(
                                 dates,
                                 books[idx],
-                                data.goals[idx].goalBooks!,
+                                data.goals[data.goals.length - 1 - idx]
+                                    .goalBooks!,
                                 books[idx].length)));
                       },
                 title: Text(
@@ -94,9 +98,11 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
                               overflow: TextOverflow.ellipsis,
                             )),
                 trailing: SizedBox(
-                    width: 20,
-                    child: iconStatus ?? const LinearProgressIndicator()),
-                iconColor: Colors.red,
+                    width: 30,
+                    child: Stack(alignment: Alignment.center, children: [
+                      Icon(Icons.sports_score_sharp),
+                      iconStatus ?? const CircularProgressIndicator()
+                    ])),
                 isThreeLine: books[idx].isNotEmpty ? true : false,
               ));
         },

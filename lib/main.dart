@@ -526,15 +526,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   List bodies = List.filled(3, null);
   _MyHomePageState(this.currentNavIdx, this.query);
 
-  late final AnimationController _controller = AnimationController(
-    duration: const Duration(seconds: 3),
-    vsync: this,
-  )..forward();
-  late final Animation<double> _animation = CurvedAnimation(
-    parent: _controller,
-    curve: Curves.bounceIn,
-  );
-
   String? query;
   TextEditingController tecQuery = TextEditingController(text: '');
   List<Book> booksFound = List.empty(growable: true);
@@ -543,7 +534,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   List<Book> goalBooks = List.empty(growable: true);
   ScrollController mainScrollController = ScrollController();
-  Widget getList(String message) {
+
+  Widget getList(String message, void Function(void Function()) setState) {
     int length = data.libs.length;
     length += (message == '' || message == 'Read') && goalBooks.isNotEmpty
         ? goalBooks.length
@@ -558,10 +550,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           if (idx < data.libs.length) {
             if (message == "" ||
                 idx < data.libs.length && data.libs[idx].message == message) {
-              return getCard(idx, data.libs[idx].book!);
+              return getCard(idx, data.libs[idx].book!, setState);
             }
           } else {
-            return getCard(idx, goalBooks[idx - data.libs.length]);
+            return getCard(idx, goalBooks[idx - data.libs.length], setState);
           }
           return Container();
         },
@@ -569,7 +561,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget getReadForGoals() {
+  Widget getReadForGoals(void Function(void Function()) setState) {
     if (goalBooks.isNotEmpty) {
       return Expanded(
         child: ListView.builder(
@@ -577,7 +569,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           itemCount: goalBooks.length,
           itemBuilder: (BuildContext context, int idx) {
             int reverseIdx = goalBooks.length - 1 - idx;
-            return getCard(reverseIdx, goalBooks[reverseIdx]);
+            return getCard(reverseIdx, goalBooks[reverseIdx], setState);
           },
         ),
       );
@@ -587,7 +579,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  Card getCard(int idx, Book book) {
+  Card getCard(int idx, Book book, void Function(void Function()) setState) {
     return Card(
       child: Hero(
         tag: book.id!,
@@ -1237,14 +1229,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   future: _doInit(),
                   builder:
                       (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                    return TabBarView(
-                      controller: _tabController,
-                      children: [
-                        getList(""),
-                        getList("Reading"),
-                        getList("Want to Read"),
-                        getList("Read"),
-                      ],
+                    return StatefulBuilder(
+                      builder: (BuildContext context,
+                          void Function(void Function()) setState) {
+                        return TabBarView(
+                          controller: _tabController,
+                          children: [
+                            getList("", setState),
+                            getList("Reading", setState),
+                            getList("Want to Read", setState),
+                            getList("Read", setState),
+                          ],
+                        );
+                      },
                     );
                   },
                 ),
