@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -534,6 +535,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   List<Book> goalBooks = List.empty(growable: true);
   ScrollController mainScrollController = ScrollController();
+  TabController? _tabController;
 
   Widget getList(String message, void Function(void Function()) setState) {
     int length = data.libs.length;
@@ -665,25 +667,57 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+  Widget _getLibrary() {
+    return Column(
+      children: [
+        Flexible(
+          child: Column(
+            children: [
+              Expanded(
+                  child: FutureBuilder(
+                future: _doInit(),
+                builder:
+                    (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                  return StatefulBuilder(
+                    builder: (BuildContext context,
+                        void Function(void Function()) setState) {
+                      return TabBarView(
+                        controller: _tabController,
+                        children: [
+                          getList("", setState),
+                          getList("Reading", setState),
+                          getList("Want to Read", setState),
+                          getList("Read", setState),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ))
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _doInit() async {
     tryBackup();
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      final prefs = await SharedPreferences.getInstance();
-      String? lang;
-      if ((lang = prefs.getString('lang')) == null) {
-        lang = Platform.localeName.split('_')[0];
-      }
-      if (EasyLocalization.of(context)!.locale != Locale(lang!)) {
-        EasyLocalization.of(context)!.setLocale(Locale(lang));
-      }
-      for (var goal in data.goals) {
-        if (goal.books != null) {
-          for (var book in goal.books!) {
-            goalBooks.add(book);
-          }
+    final prefs = await SharedPreferences.getInstance();
+    String? lang;
+    if ((lang = prefs.getString('lang')) == null) {
+      lang = Platform.localeName.split('_')[0];
+    }
+    if (EasyLocalization.of(context)!.locale != Locale(lang!)) {
+      EasyLocalization.of(context)!.setLocale(Locale(lang));
+    }
+    for (var goal in data.goals) {
+      if (goal.books != null) {
+        for (var book in goal.books!) {
+          goalBooks.add(book);
         }
       }
-    });
+    }
   }
 
   Future<String?> _getIsbnFromPicture(bool camera) async {
@@ -708,6 +742,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     currentNavIdx = currentNavIdx ?? 0;
     tecQuery.text = query ?? '';
     futureTitles = queryBooks(tecQuery.text);
+    _tabController = new TabController(length: 4, vsync: this);
     FocusNode? focusNode;
     bodies[0] = StatefulBuilder(
       builder:
@@ -804,6 +839,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           booksLeft = data.goals.last.goalBooks! -
                               data.goals.last.books!.length;
                           bookRequiredForGoal = findBookFrequency();
+                          bodies[2] = _getLibrary();
+
                           return Column(
                             children: [
                               Row(
@@ -1181,8 +1218,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ),
     );
 
-    TabController _tabController = new TabController(length: 4, vsync: this);
-
     appbars[2] = AppBar(
       title: Text("myLibrary".tr()),
       bottom: TabBar(
@@ -1219,38 +1254,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ],
       ),
     );
-    bodies[2] = Column(
-      children: [
-        Flexible(
-          child: Column(
-            children: [
-              Expanded(
-                child: FutureBuilder(
-                  future: _doInit(),
-                  builder:
-                      (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                    return StatefulBuilder(
-                      builder: (BuildContext context,
-                          void Function(void Function()) setState) {
-                        return TabBarView(
-                          controller: _tabController,
-                          children: [
-                            getList("", setState),
-                            getList("Reading", setState),
-                            getList("Want to Read", setState),
-                            getList("Read", setState),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              )
-            ],
-          ),
-        ),
-      ],
-    );
+    bodies[2] = _getLibrary();
   }
 
   @override

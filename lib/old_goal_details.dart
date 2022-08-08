@@ -36,28 +36,22 @@ class OldGoalDetailsPage extends State<OldGoalDetailsPageSend> {
       child: Scaffold(
         appBar: AppBar(title: Text(dates + ' ' + 'goal'.tr())),
         body: SingleChildScrollView(
+          physics: ScrollPhysics(),
           child: Column(
             children: [
               ListTile(
                 trailing:
                     Text(finished.toString() + " / " + required.toString()),
-                leading: Icon(Icons.checklist_rtl_rounded),
+                leading: Icon(Icons.sports_score_rounded),
                 title: Text(
                   'goalStatus'.tr(),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Divider(),
-              ListTile(
-                title: Text(
-                  'booksRead'.tr(),
                   textAlign: TextAlign.center,
                 ),
               ),
               Card(
                 elevation: 1,
                 child: ListView.builder(
-                    scrollDirection: Axis.vertical,
+                    physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     itemCount: books.length,
                     itemBuilder: ((context, index) => ListTile(
@@ -68,12 +62,20 @@ class OldGoalDetailsPage extends State<OldGoalDetailsPageSend> {
                                     OldGoalDetailsPageSend(
                                         dates, books, required, finished))));
                           },
-                          leading: (books[index].imgUrl != '')
-                              ? Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Image.network(books[index].imgUrl!),
-                                )
-                              : null,
+                          leading: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: (books[index].imgUrl != '')
+                                  ? Image.network(
+                                      books[index].imgUrl!,
+                                      width: 36,
+                                    )
+                                  : Opacity(
+                                      opacity: .75,
+                                      child: Image.asset(
+                                        'assets/imgs/logo.png',
+                                        width: 36,
+                                      ),
+                                    )),
                           title: Text(books[index].title!),
                           subtitle: Text('finishedDate'.tr() +
                               ': ' +

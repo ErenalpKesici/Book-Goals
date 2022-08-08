@@ -46,6 +46,7 @@ void tryBackup() async {
   String email = prefs.getString('email') ?? '';
   if (email == '') return;
   int backupFrequencyIdx = prefs.getInt('backupFrequencyIdx') ?? 0;
+  if (backupFrequencyIdx == -1) return;
   final externalDir = await getExternalStorageDirectory();
 
   // if (await File(externalDir!.path + "/Preferences.json").exists()) {
@@ -217,6 +218,7 @@ Future<List<Book>> queryBooks(String query) async {
 
 DecorationImage getDecorationImage(String imgUrl) {
   DecorationImage decorationImage = const DecorationImage(
+    opacity: .5,
     colorFilter: ColorFilter.mode(Colors.grey, BlendMode.modulate),
     fit: BoxFit.none,
     image: AssetImage('assets/imgs/logo.png'),
@@ -240,9 +242,12 @@ Drawer getDrawer(BuildContext context) {
     child: ListView(
       children: [
         const DrawerHeader(
-            child: Image(
-          image: AssetImage('assets/imgs/logo.png'),
-          fit: BoxFit.scaleDown,
+            child: Opacity(
+          opacity: .75,
+          child: Image(
+            image: AssetImage('assets/imgs/logo.png'),
+            fit: BoxFit.scaleDown,
+          ),
         )),
         Divider(
           height: 16,

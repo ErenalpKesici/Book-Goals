@@ -83,23 +83,17 @@ class InitialPage extends State<InitialPageSend> {
                     if (email.text != "" && password.text != "") {
                       email.text = email.text.trim();
                       password.text = password.text.trim();
-                      DocumentReference doc = FirebaseFirestore.instance
-                          .collection("Users")
-                          .doc(email.text);
-                      var document = await doc.get();
-                      if (!document.exists) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('alertNotFound'.toString())));
-                        return;
-                      }
-                      if (document.get('email') == email.text &&
-                          document.get('password') == password.text) {
-                        int result =
-                            await context.read<AuthenticationServices>().signIn(
-                                  email: email.text,
-                                  password: password.text,
-                                );
-                        if (result == 1) {
+                      if (await context.read<AuthenticationServices>().signIn(
+                                email: email.text,
+                                password: password.text,
+                              ) ==
+                          1) {
+                        DocumentReference doc = FirebaseFirestore.instance
+                            .collection("Users")
+                            .doc(email.text);
+                        var document = await doc.get();
+                        if (document.get('email') == email.text &&
+                            document.get('password') == password.text) {
                           Users user = Users(
                               email: document.get('email'),
                               name: document.get('name'),
@@ -111,11 +105,11 @@ class InitialPage extends State<InitialPageSend> {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(SnackBar(content: Text('n')));
                       } else
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Wrong entered'.toString())));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('accountNonExist'.tr())));
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Fill all fields'.toString())));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('enterAllFields'.tr())));
                     }
                   }),
               const SizedBox(
@@ -123,6 +117,7 @@ class InitialPage extends State<InitialPageSend> {
               ),
               SignInButton(Buttons.Google, text: 'loginGoogle'.tr(),
                   onPressed: () async {
+                Users user;
                 UserCredential userCredential = await context
                     .read<AuthenticationServices>()
                     .signInWithGoogle();
@@ -130,6 +125,12 @@ class InitialPage extends State<InitialPageSend> {
                   DocumentReference doc = FirebaseFirestore.instance
                       .collection("Users")
                       .doc(userCredential.user!.email);
+
+                  var document = await doc.get();
+                  user = Users(
+                      email: document.get('email'),
+                      password: document.get('password'),
+                      name: document.get('name'));
                 } else {
                   await FirebaseFirestore.instance
                       .collection('Users')
@@ -140,7 +141,15 @@ class InitialPage extends State<InitialPageSend> {
                     'password': userCredential.user!.uid,
                     'picture': userCredential.user!.photoURL,
                   });
+                  user = Users(
+                      email: userCredential.user!.email,
+                      password: userCredential.user!.uid,
+                      name: userCredential.user!.displayName);
                 }
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => BackupRestorePageSend(
+                          user: user,
+                        )));
               }),
               const SizedBox(
                 height: 50,

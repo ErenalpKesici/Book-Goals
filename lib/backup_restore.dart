@@ -30,24 +30,25 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
   Users? user;
   int backupFrequencyIdx = 0;
   List<String> durations = getDurations();
+  bool _backupEnabled = false;
   BackupRestorePage(this.user);
   void loadFrequency() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      backupFrequencyIdx = prefs.getInt('backupFrequency') ?? 0;
+      backupFrequencyIdx = prefs.getInt('backupFrequency') ?? -1;
+      _backupEnabled = backupFrequencyIdx != -1;
     });
   }
 
   @override
   void initState() {
-    savePrefs();
     loadFrequency();
     super.initState();
   }
 
   void savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setInt('backupFrequency', backupFrequencyIdx);
+    prefs.setInt('backupFrequency', _backupEnabled ? backupFrequencyIdx : -1);
     prefs.setString('email', user!.email!);
     // final externalDir = await getExternalStorageDirectory();
     // await File(externalDir!.path + "/Preferences.json").writeAsString(
@@ -82,28 +83,49 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ListTile(
-                      leading: const Icon(Icons.security_rounded),
-                      title: Text(
-                        "autoBackupEvery".tr(),
-                        textAlign: TextAlign.center,
-                      ),
-                      trailing: DropdownButton<String>(
-                        alignment: AlignmentDirectional.center,
-                        value: durations[backupFrequencyIdx],
-                        onChanged: (String? newValue) async {
-                          setState(() {
-                            durations[backupFrequencyIdx] = newValue!;
-                          });
-                          savePrefs();
-                        },
-                        items: durations
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      )),
+                      enabled: _backupEnabled,
+                      leading: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              if (_backupEnabled)
+                                _backupEnabled = false;
+                              else {
+                                backupFrequencyIdx = 0;
+                                _backupEnabled = true;
+                              }
+                            });
+                            savePrefs();
+                          },
+                          icon: Icon(Icons.security_rounded)),
+                      title: _backupEnabled
+                          ? Text(
+                              'autoBackupEvery'.tr(),
+                              textAlign: TextAlign.center,
+                            )
+                          : Text(
+                              'autoBackupDisabled'.tr(),
+                              textAlign: TextAlign.center,
+                            ),
+                      trailing: _backupEnabled
+                          ? DropdownButton<String>(
+                              alignment: AlignmentDirectional.center,
+                              value: durations[backupFrequencyIdx],
+                              onChanged: (String? newValue) async {
+                                setState(() {
+                                  backupFrequencyIdx = durations.indexWhere(
+                                      (element) => element == newValue!);
+                                });
+                                savePrefs();
+                              },
+                              items: durations.map<DropdownMenuItem<String>>(
+                                  (String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                            )
+                          : null),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -111,41 +133,59 @@ class BackupRestorePage extends State<BackupRestorePageSend> {
                     ElevatedButton.icon(
                       icon: const Icon(Icons.restore),
                       onPressed: () async {
-                        final externalDir = await getExternalStorageDirectory();
-                        // CollectionReference _documentRef = FirebaseFirestore.instance.collection('Users');
-                        // _documentRef.get().then((value){
-                        //   for(int i=0;i<value.docs.length;i++){
-                        //     print(value.docs[i].id.contains('.').toString()+" : " + value.docs[i].id);
-                        //     if(!value.docs[i].id.contains('.')){
-                        //       value.docs[i].reference.delete();
-                        //     }
-                        //   }
-                        // });
-                        var doc = await FirebaseFirestore.instance
-                            .collection('Users')
-                            .doc(user!.email)
-                            .get();
-                        try {
-                          String json = doc.get('save');
-                          await File(externalDir!.path + "/Save.json")
-                              .writeAsString(json);
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor:
-                                  Theme.of(context).backgroundColor,
-                              content: Text('Successfully restored from ' +
-                                  user!.email!)));
-                          update = true;
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => MyHomePage.init()));
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor:
-                                  Theme.of(context).backgroundColor,
-                              content: Text('Error from account: ' +
-                                  user!.email! +
-                                  " - " +
-                                  e.toString())));
-                        }
+                        await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                                  title: Text('confirmRestore'.tr()),
+                                  actions: [
+                                    ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('no'.tr())),
+                                    ElevatedButton(
+                                        onPressed: () async {
+                                          final externalDir =
+                                              await getExternalStorageDirectory();
+                                          var doc = await FirebaseFirestore
+                                              .instance
+                                              .collection('Users')
+                                              .doc(user!.email)
+                                              .get();
+                                          try {
+                                            String json = doc.get('save');
+                                            await File(externalDir!.path +
+                                                    "/Save.json")
+                                                .writeAsString(json);
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .backgroundColor,
+                                                    content: Text(
+                                                        'Successfully restored from ' +
+                                                            user!.email!)));
+                                            update = true;
+                                            Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyHomePage.init()));
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .backgroundColor,
+                                                    content: Text(
+                                                        'Error from account: ' +
+                                                            user!.email! +
+                                                            " - " +
+                                                            e.toString())));
+                                          }
+                                        },
+                                        child: Text('yes'.tr()))
+                                  ],
+                                ));
                       },
                       label: Text("restore".tr()),
                     ),

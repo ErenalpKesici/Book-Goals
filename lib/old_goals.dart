@@ -47,6 +47,7 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
           }
           Icon? iconStatus = const Icon(
             Icons.not_interested,
+            size: 36,
             color: Colors.red,
           );
           if (data.goals[data.goals.length - 1 - idx].dateEnd != null) {
@@ -62,7 +63,8 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
             } else if (data.goals[data.goals.length - 1 - idx].goalBooks! <=
                 data.goals[data.goals.length - 1 - idx].books!.length) {
               iconStatus = const Icon(
-                Icons.done_outline_rounded,
+                Icons.done,
+                size: 36,
                 color: Colors.green,
               );
             }
@@ -100,7 +102,8 @@ class OldGoalsPage extends State<OldGoalsPageSend> {
                 trailing: SizedBox(
                     width: 30,
                     child: Stack(alignment: Alignment.center, children: [
-                      Icon(Icons.sports_score_sharp),
+                      Opacity(
+                          opacity: .5, child: Icon(Icons.sports_score_sharp)),
                       iconStatus ?? const CircularProgressIndicator()
                     ])),
                 isThreeLine: books[idx].isNotEmpty ? true : false,
