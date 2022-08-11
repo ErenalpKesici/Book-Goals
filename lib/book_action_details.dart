@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:book_goals/helper_functions.dart';
 import 'package:book_goals/list_books.dart';
 import 'package:book_goals/main.dart';
@@ -86,15 +87,16 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => sender));
-        return false;
+    return OpenContainer(
+      closedShape: BeveledRectangleBorder(),
+      openColor: Colors.transparent,
+      closedColor: Colors.transparent,
+      openBuilder:
+          (BuildContext context, void Function({Object? returnValue}) action) {
+        return sender;
       },
-      child: Hero(
-        tag: book.id!,
-        child: Scaffold(
+      closedBuilder: (BuildContext context, void Function() action) {
+        return Scaffold(
           appBar: AppBar(
             title: Text(book.title!),
           ),
@@ -175,25 +177,6 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
                                   ? Colors.white
                                   : Colors.grey)),
                     ),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     const SizedBox(
-                  //       width: 20,
-                  //     ),
-                  //     ElevatedButton.icon(
-                  //         onPressed: btnSelected != 3
-                  //             ? () {
-                  //                 setState(() {
-                  //                   btnSelected = 3;
-                  //                 });
-                  //                 updateLibs(actions[3]);
-                  //               }
-                  //             : null,
-                  //         icon: const Icon(Icons.done_outline),
-                  //         label: Text(actionsTranslated[3])),
-                  //   ],
-                  // ),
                   btnSelected != -1 && btnSelected != 1
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -248,8 +231,8 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

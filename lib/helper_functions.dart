@@ -233,6 +233,7 @@ DecorationImage getDecorationImage(String imgUrl) {
 }
 
 Drawer getDrawer(BuildContext context) {
+  String enabledWidget = context.widget.toString();
   return Drawer(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
@@ -254,6 +255,7 @@ Drawer getDrawer(BuildContext context) {
           color: Theme.of(context).primaryColor,
         ),
         ListTile(
+          enabled: enabledWidget != "MyHomePage",
           leading: const Icon(Icons.home),
           title: Text(
             "homePage".tr(),
@@ -264,12 +266,11 @@ Drawer getDrawer(BuildContext context) {
               Navigator.of(context).pop();
               Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => MyHomePage.init()));
-            } else {
-              Navigator.of(context).pop();
             }
           },
         ),
         ListTile(
+          enabled: enabledWidget != "OldGoalsPageSend",
           leading: const Icon(Icons.history),
           title: Text(
             "allGoals".tr(),
@@ -280,12 +281,11 @@ Drawer getDrawer(BuildContext context) {
               Navigator.of(context).pop();
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => const OldGoalsPageSend()));
-            } else {
-              Navigator.of(context).pop();
             }
           },
         ),
         ListTile(
+          enabled: enabledWidget != "StatsPageSend",
           leading: const Icon(Icons.bar_chart_rounded),
           title: Text(
             "statistics".tr(),
@@ -296,12 +296,11 @@ Drawer getDrawer(BuildContext context) {
               Navigator.of(context).pop();
               Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => StatsPageSend()));
-            } else {
-              Navigator.of(context).pop();
             }
           },
         ),
         ListTile(
+          enabled: enabledWidget != "SettingsPageSend",
           leading: const Icon(Icons.settings),
           title: Text(
             "settings".tr(),
@@ -312,8 +311,6 @@ Drawer getDrawer(BuildContext context) {
               Navigator.of(context).pop();
               Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => SettingsPageSend()));
-            } else {
-              Navigator.of(context).pop();
             }
           },
         ),

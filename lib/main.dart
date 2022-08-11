@@ -28,6 +28,7 @@ import 'data.dart';
 import 'helper_functions.dart';
 import 'list_books.dart';
 import 'package:confetti/confetti.dart';
+import 'package:animations/animations.dart';
 
 Data data = Data.empty();
 int bookRequiredForGoal = 0, daysRemaining = -1, booksLeft = -1;
@@ -193,6 +194,7 @@ Data readData(Map<String, dynamic> saveRead) {
 Future<void> alertUser(BuildContext context, String title) async {
   SchedulerBinding.instance.addPostFrameCallback((_) async {
     return await showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) {
           return AlertDialog(
@@ -302,6 +304,7 @@ class MyApp extends StatelessWidget {
         )
       ],
       child: MaterialApp(
+        title: 'app_name'.tr(),
         locale: context.locale,
         debugShowCheckedModeBanner: false,
         localizationsDelegates: context.localizationDelegates,
@@ -370,11 +373,6 @@ Future<void> alertModifyGoal(BuildContext context, bool dismissable) async {
                               ),
                             ],
                           ),
-                          // Text(
-                          //   "howLongGoal".tr(),
-                          //   style: const TextStyle(fontSize: 16),
-                          //   textAlign: TextAlign.center,
-                          // ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -543,21 +541,36 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ? goalBooks.length
         : 0;
     return SingleChildScrollView(
-      child: ListView.builder(
-        shrinkWrap: true,
-        controller: mainScrollController,
-        itemCount: length,
-        reverse: true,
-        itemBuilder: (BuildContext context, int idx) {
-          if (idx < data.libs.length) {
-            if (message == "" ||
-                idx < data.libs.length && data.libs[idx].message == message) {
-              return getCard(idx, data.libs[idx].book!, setState);
-            }
-          } else {
-            return getCard(idx, goalBooks[idx - data.libs.length], setState);
-          }
-          return Container();
+      child: Builder(
+        builder: (BuildContext context) {
+          int notThis = 0;
+          return ListView.builder(
+            shrinkWrap: true,
+            controller: mainScrollController,
+            itemCount: length,
+            reverse: true,
+            itemBuilder: (BuildContext context, int idx) {
+              if (idx < data.libs.length) {
+                if (message == "" ||
+                    idx < data.libs.length &&
+                        data.libs[idx].message == message) {
+                  return getCard(idx, data.libs[idx].book!, setState);
+                }
+              } else {
+                return getCard(
+                    idx, goalBooks[idx - data.libs.length], setState);
+              }
+              notThis++;
+              if (notThis == length)
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      0, MediaQuery.of(context).size.height * .35, 0, 0),
+                  child: Center(child: Text('noBookFound'.tr())),
+                );
+              else
+                return Container();
+            },
+          );
         },
       ),
     );
@@ -583,59 +596,62 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Card getCard(int idx, Book book, void Function(void Function()) setState) {
     return Card(
-      child: Hero(
-        tag: book.id!,
-        child: Material(
-          child: Container(
-            decoration: BoxDecoration(
-                image: getDecorationImage(book.imgUrl!),
-                borderRadius: BorderRadius.circular(10)),
-            child: Slidable(
-              startActionPane: ActionPane(
-                motion: const StretchMotion(),
-                children: [
-                  SlidableAction(
-                    onPressed: (BuildContext context) {
-                      setState(() {
-                        if (idx < data.libs.length) {
-                          data.libs.removeAt(idx);
-                        } else {
-                          for (var element in data.goals) {
-                            element.books?.removeWhere((element) =>
-                                element == goalBooks[idx - data.libs.length]);
+      child: OpenContainer(
+        middleColor: Colors.transparent,
+        transitionDuration: Duration(seconds: 1),
+        closedColor: Colors.transparent,
+        openColor: Colors.transparent,
+        closedBuilder: (BuildContext context, void Function() action) {
+          return Material(
+            child: Container(
+              decoration: BoxDecoration(
+                  image: getDecorationImage(book.imgUrl!),
+                  borderRadius: BorderRadius.circular(10)),
+              child: Slidable(
+                startActionPane: ActionPane(
+                  motion: const StretchMotion(),
+                  children: [
+                    SlidableAction(
+                      onPressed: (BuildContext context) {
+                        setState(() {
+                          if (idx < data.libs.length) {
+                            data.libs.removeAt(idx);
+                          } else {
+                            for (var element in data.goals) {
+                              element.books?.removeWhere((element) =>
+                                  element == goalBooks[idx - data.libs.length]);
+                            }
+                            goalBooks.removeAt(idx - data.libs.length);
                           }
-                          goalBooks.removeAt(idx - data.libs.length);
-                        }
-                      });
-                      writeSave();
-                    },
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    icon: Icons.delete,
-                    label: 'Delete',
-                  ),
-                ],
-              ),
-              child: ListTile(
-                minVerticalPadding: 10,
-                isThreeLine: true,
-                title: Text(book.title!, style: getCardTextStyle()),
-                subtitle: Text(
-                    book.authors!.isNotEmpty == true ? book.authors!.first : '',
-                    style: getCardTextStyle()),
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                          transitionDuration: const Duration(seconds: 1),
-                          pageBuilder: (_, __, ___) =>
-                              BookActionDetailsPageSend(
-                                  book, MyHomePage(2, ''))));
-                },
+                        });
+                        writeSave();
+                      },
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Delete',
+                    ),
+                  ],
+                ),
+                child: ListTile(
+                  minVerticalPadding: 10,
+                  isThreeLine: true,
+                  title: Text(book.title!, style: getCardTextStyle()),
+                  subtitle: Text(
+                      book.authors!.isNotEmpty == true
+                          ? book.authors!.first
+                          : '',
+                      style: getCardTextStyle()),
+                  onTap: action,
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
+        openBuilder: (BuildContext context,
+            void Function({Object? returnValue}) action) {
+          return BookActionDetailsPageSend(book, MyHomePage(2, ''));
+        },
       ),
     );
   }
@@ -654,6 +670,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             currentIndex: currentNavIdx!,
             onTap: (int idx) {
               if (currentNavIdx != idx) {
+                if (idx == 2) bodies[2] = _getLibrary();
                 setInnerState(() {
                   currentNavIdx = idx;
                 });
@@ -711,6 +728,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (EasyLocalization.of(context)!.locale != Locale(lang!)) {
       EasyLocalization.of(context)!.setLocale(Locale(lang));
     }
+    goalBooks = List.empty(growable: true);
     for (var goal in data.goals) {
       if (goal.books != null) {
         for (var book in goal.books!) {
@@ -839,8 +857,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           booksLeft = data.goals.last.goalBooks! -
                               data.goals.last.books!.length;
                           bookRequiredForGoal = findBookFrequency();
-                          bodies[2] = _getLibrary();
-
+                          // bodies[2] = _getLibrary();
                           return Column(
                             children: [
                               Row(
@@ -1169,41 +1186,40 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Book book = snapshot.data[index];
                     if (book.title == null) return Container();
                     return Card(
-                      child: Hero(
-                        tag: book.id!,
-                        child: Container(
-                          decoration: BoxDecoration(
-                              image: getDecorationImage(book.imgUrl!),
-                              borderRadius: BorderRadius.circular(10)),
-                          child: ListTile(
-                            minVerticalPadding: 10,
-                            isThreeLine: true,
-                            title: Text(
-                              book.title!,
-                              style: TextStyle(shadows: [
-                                Shadow(
-                                  offset: Offset(2.0, 4.0),
-                                  blurRadius: 5,
-                                  color: Colors.black,
-                                ),
-                              ]),
+                      child: OpenContainer(
+                        closedColor: Colors.transparent,
+                        transitionDuration: Duration(seconds: 1),
+                        closedBuilder:
+                            (BuildContext context, void Function() action) {
+                          return Container(
+                            decoration: BoxDecoration(
+                                image: getDecorationImage(book.imgUrl!),
+                                borderRadius: BorderRadius.circular(10)),
+                            child: ListTile(
+                              minVerticalPadding: 10,
+                              isThreeLine: true,
+                              title: Text(
+                                book.title!,
+                                style: TextStyle(shadows: [
+                                  Shadow(
+                                    offset: Offset(2.0, 4.0),
+                                    blurRadius: 5,
+                                    color: Colors.black,
+                                  ),
+                                ]),
+                              ),
+                              subtitle: Text(book.authors!.isNotEmpty == true
+                                  ? book.authors!.first
+                                  : ''),
+                              onTap: action,
                             ),
-                            subtitle: Text(book.authors!.isNotEmpty == true
-                                ? book.authors!.first
-                                : ''),
-                            onTap: () {
-                              focusNode?.unfocus();
-                              Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                      transitionDuration:
-                                          const Duration(seconds: 1),
-                                      pageBuilder: (_, __, ___) =>
-                                          BookActionDetailsPageSend(
-                                              book, MyHomePage(1, query))));
-                            },
-                          ),
-                        ),
+                          );
+                        },
+                        openBuilder: (BuildContext context,
+                            void Function({Object? returnValue}) action) {
+                          return BookActionDetailsPageSend(
+                              book, MyHomePage(1, query));
+                        },
                       ),
                     );
                   },
@@ -1254,7 +1270,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ],
       ),
     );
-    bodies[2] = _getLibrary();
+    // bodies[2] = _getLibrary();
   }
 
   @override
@@ -1262,7 +1278,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return Scaffold(
       bottomNavigationBar: getBottomNav(),
       appBar: appbars[currentNavIdx!],
-      body: bodies[currentNavIdx!],
+      body: PageTransitionSwitcher(
+        duration: Duration(seconds: 1),
+        transitionBuilder: (
+          Widget child,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+        ) {
+          return FadeThroughTransition(
+            animation: animation,
+            secondaryAnimation: secondaryAnimation,
+            child: child,
+          );
+        },
+        child: bodies[currentNavIdx!],
+      ),
       drawer: getDrawer(context),
     );
   }

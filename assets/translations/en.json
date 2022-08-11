@@ -83,6 +83,7 @@
     "enterAllFields": "Please enter all fields",
     "goalFinishBefore": "aiming to finish before then",
     "confirm": "Confirm",
+    "noBookFound": "No book found",
     "confirmRestore": "Are you sure you wish to restore information from your account?",
     "confirmDeleteBook": "Are you sure you wish to delete selected book(s)?",
     "confirmAbortGoal": "Are you sure you want to abort the goal?",
