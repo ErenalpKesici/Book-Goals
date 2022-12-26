@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -83,6 +84,9 @@ Book readBook(Map<String, dynamic> book) {
         case ("title"):
           bookToAdd.title = value;
           break;
+        case ("subtitle"):
+          bookToAdd.subtitle = value;
+          break;
         case ("categories"):
           String catsDecoded =
               value.toString().substring(1, value.toString().length - 1);
@@ -98,6 +102,12 @@ Book readBook(Map<String, dynamic> book) {
           for (String auth in auths) {
             bookToAdd.authors!.add(auth);
           }
+          break;
+        case ("description"):
+          bookToAdd.description = value;
+          break;
+        case ("language"):
+          bookToAdd.language = value;
           break;
         case ("date"):
           bookToAdd.date = DateTime.parse(value);
@@ -304,7 +314,7 @@ class MyApp extends StatelessWidget {
         )
       ],
       child: MaterialApp(
-        title: 'app_name'.tr(),
+        title: 'Kitap Hedeflerim',
         locale: context.locale,
         debugShowCheckedModeBanner: false,
         localizationsDelegates: context.localizationDelegates,
@@ -315,6 +325,7 @@ class MyApp extends StatelessWidget {
             primaryColor: Colors.lightBlue,
             appBarTheme: AppBarTheme(color: Colors.lightBlue[300]),
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
+                selectedLabelStyle: TextStyle(),
                 type: BottomNavigationBarType.shifting,
                 selectedItemColor: Theme.of(context).primaryColor),
             colorScheme: ColorScheme.fromSwatch().copyWith(
@@ -629,21 +640,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       icon: Icons.delete,
-                      label: 'Delete',
+                      label: 'delete'.tr(),
                     ),
                   ],
                 ),
-                child: ListTile(
-                  minVerticalPadding: 10,
-                  isThreeLine: true,
-                  title: Text(book.title!, style: getCardTextStyle()),
-                  subtitle: Text(
-                      book.authors!.isNotEmpty == true
-                          ? book.authors!.first
-                          : '',
-                      style: getCardTextStyle()),
-                  onTap: action,
-                ),
+                child: getBookTile(book, action),
               ),
             ),
           );
@@ -661,25 +662,36 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       builder:
           (BuildContext context, void Function(void Function()) setInnerState) {
         return Container(
-          decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                  top: BorderSide(color: Theme.of(context).primaryColor))),
-          child: BottomNavigationBar(
-            showUnselectedLabels: false,
-            currentIndex: currentNavIdx!,
-            onTap: (int idx) {
-              if (currentNavIdx != idx) {
-                if (idx == 2) bodies[2] = _getLibrary();
-                setInnerState(() {
-                  currentNavIdx = idx;
-                });
-                setState(() {});
-              }
-            },
-            items: getNavs(),
-          ),
-        );
+            decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                    top: BorderSide(color: Theme.of(context).primaryColor))),
+            child: GNav(
+                rippleColor:
+                    Colors.grey[800]!, // tab button ripple color when pressed
+                hoverColor: Colors.grey[700]!,
+                curve: Curves.easeIn, // tab animation curves
+                gap: 8, // the tab button gap between icon and text
+                activeColor: Theme.of(context)
+                    .appBarTheme
+                    .backgroundColor, // selected icon and text color
+                iconSize: 24, //  selected tab background color
+                padding: EdgeInsets.fromLTRB(25, 12, 25, 12),
+                tabMargin: EdgeInsets.all(8),
+                tabBackgroundColor: Colors.black,
+                color: Colors.white,
+                onTabChange: (int idx) {
+                  if (currentNavIdx != idx) {
+                    if (idx == 2) bodies[2] = _getLibrary();
+                    setInnerState(() {
+                      currentNavIdx = idx;
+                    });
+                    setState(() {});
+                  }
+                },
+                selectedIndex: currentNavIdx!,
+                backgroundColor: Theme.of(context).canvasColor,
+                tabs: getNavs()));
       },
     );
   }
@@ -1192,28 +1204,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         closedBuilder:
                             (BuildContext context, void Function() action) {
                           return Container(
-                            decoration: BoxDecoration(
-                                image: getDecorationImage(book.imgUrl!),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: ListTile(
-                              minVerticalPadding: 10,
-                              isThreeLine: true,
-                              title: Text(
-                                book.title!,
-                                style: TextStyle(shadows: [
-                                  Shadow(
-                                    offset: Offset(2.0, 4.0),
-                                    blurRadius: 5,
-                                    color: Colors.black,
-                                  ),
-                                ]),
-                              ),
-                              subtitle: Text(book.authors!.isNotEmpty == true
-                                  ? book.authors!.first
-                                  : ''),
-                              onTap: action,
-                            ),
-                          );
+                              decoration: BoxDecoration(
+                                  image: getDecorationImage(book.imgUrl!),
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: getBookTile(book, action));
                         },
                         openBuilder: (BuildContext context,
                             void Function({Object? returnValue}) action) {

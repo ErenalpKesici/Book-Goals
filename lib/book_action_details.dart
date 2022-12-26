@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:book_goals/helper_functions.dart';
+import 'package:book_goals/image_details.dart';
 import 'package:book_goals/list_books.dart';
 import 'package:book_goals/main.dart';
 import 'package:book_goals/settings.dart';
@@ -87,152 +88,175 @@ class BookActionDetailsPage extends State<BookActionDetailsPageSend> {
 
   @override
   Widget build(BuildContext context) {
-    return OpenContainer(
-      closedShape: BeveledRectangleBorder(),
-      openColor: Colors.transparent,
-      closedColor: Colors.transparent,
-      openBuilder:
-          (BuildContext context, void Function({Object? returnValue}) action) {
-        return sender;
-      },
-      closedBuilder: (BuildContext context, void Function() action) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(book.title!),
-          ),
-          body: Center(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  if (book.imgUrl != '')
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image.network(book.imgUrl!),
-                    ),
-                  if (sender.runtimeType != ListBookPageSend)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                            onPressed: btnSelected != 0
-                                ? () {
-                                    setState(() {
-                                      btnSelected = 0;
-                                    });
-                                    updateLibs(actions[0]);
-                                  }
-                                : null,
-                            icon: const Icon(Icons.timelapse_rounded),
-                            label: Text(actionsTranslated[0])),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        ElevatedButton.icon(
-                            onPressed: btnSelected != 1
-                                ? () {
-                                    setState(() {
-                                      btnSelected = 1;
-                                    });
-                                    updateLibs(actions[1]);
-                                  }
-                                : null,
-                            icon: const Icon(Icons.bookmarks_rounded),
-                            label: Text(actionsTranslated[1])),
-                      ],
-                    ),
-                  if (sender.runtimeType != ListBookPageSend)
+    return Scaffold(
+      appBar: AppBar(title: Text(book.title!), actions: [
+        // Padding(
+        //   padding: const EdgeInsets.all(8.0),
+        //   child: Opacity(
+        //     opacity: .75,
+        //     child: Container(
+        //         width: 30,
+        //         decoration: BoxDecoration(
+        //             image: DecorationImage(
+        //           image: book.language == 'en'
+        //               ? AssetImage("assets/imgs/en.png")
+        //               : AssetImage('icons/flags/png/' + book.language! + '.png',
+        //                   package: 'country_icons'),
+        //         ))),
+        //   ),
+        // )
+      ]),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              if (book.imgUrl != '')
+                GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => ImageDetailsSend(book)));
+                    },
+                    child: SizedBox(
+                        height: 250, child: Image.network(book.imgUrl!))),
+              if (sender.runtimeType != ListBookPageSend)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     ElevatedButton.icon(
-                      onPressed: btnSelected != 2
-                          ? () async {
-                              if (null !=
-                                  (readDate = await showDatePicker(
-                                      helpText: 'finishedDate'.tr(),
-                                      builder: (context, child) => Theme(
-                                            data: ThemeData.light().copyWith(
-                                              dialogBackgroundColor: Colors
-                                                  .white, //Background color
-                                            ),
-                                            child: child!,
-                                          ),
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime(2000, 1, 1),
-                                      lastDate: DateTime.now()))) {
+                        onPressed: btnSelected != 0
+                            ? () {
                                 setState(() {
-                                  btnSelected = 2;
+                                  btnSelected = 0;
                                 });
-                                updateLibs(actions[2]);
+                                updateLibs(actions[0]);
                               }
-                            }
-                          : null,
-                      icon: const Icon(Icons.done_rounded),
-                      label: Text(
-                          btnSelected != 2
-                              ? actionsTranslated[2]
-                              : 'finishedDate'.tr() +
-                                  ': ' +
-                                  DateFormat('yyyy-MM-dd').format(book.date!),
-                          style: TextStyle(
-                              color: btnSelected != 2
-                                  ? Colors.white
-                                  : Colors.grey)),
+                            : null,
+                        icon: const Icon(Icons.timelapse_rounded),
+                        label: Text(actionsTranslated[0])),
+                    const SizedBox(
+                      width: 20,
                     ),
-                  btnSelected != -1 && btnSelected != 1
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: getBookReview(book),
-                        )
-                      : Container(),
-                  ListTile(
-                    leading: const Icon(Icons.title),
-                    title: Text(
-                      book.title!,
-                      textAlign: TextAlign.center,
+                    ElevatedButton.icon(
+                        onPressed: btnSelected != 1
+                            ? () {
+                                setState(() {
+                                  btnSelected = 1;
+                                });
+                                updateLibs(actions[1]);
+                              }
+                            : null,
+                        icon: const Icon(Icons.bookmarks_rounded),
+                        label: Text(actionsTranslated[1])),
+                  ],
+                ),
+              if (sender.runtimeType != ListBookPageSend)
+                ElevatedButton.icon(
+                  onPressed: btnSelected != 2
+                      ? () async {
+                          if (null !=
+                              (readDate = await showDatePicker(
+                                  helpText: 'finishedDate'.tr(),
+                                  builder: (context, child) => Theme(
+                                        data: ThemeData.light().copyWith(
+                                          dialogBackgroundColor:
+                                              Colors.white, //Background color
+                                        ),
+                                        child: child!,
+                                      ),
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2000, 1, 1),
+                                  lastDate: DateTime.now()))) {
+                            setState(() {
+                              btnSelected = 2;
+                            });
+                            updateLibs(actions[2]);
+                          }
+                        }
+                      : null,
+                  icon: const Icon(Icons.done_rounded),
+                  label: Text(
+                      btnSelected != 2
+                          ? actionsTranslated[2]
+                          : 'finishedDate'.tr() +
+                              ': ' +
+                              DateFormat('yyyy-MM-dd').format(book.date!),
+                      style: TextStyle(
+                          color:
+                              btnSelected != 2 ? Colors.white : Colors.grey)),
+                ),
+              btnSelected != -1 && btnSelected != 1
+                  ? Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: getBookReview(book),
+                    )
+                  : Container(),
+              ListTile(
+                leading: const Icon(Icons.title),
+                title: Text(
+                  book.title!,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              if (book.authors!.isNotEmpty && book.authors![0] != '')
+                ListTile(
+                  leading: const Icon(Icons.people),
+                  title: Text(
+                    book.authors!
+                        .toString()
+                        .substring(1, book.authors!.toString().length - 1),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              if (book.categories!.isNotEmpty && book.categories![0] != '')
+                ListTile(
+                  leading: const Icon(Icons.category),
+                  title: Text(
+                    book.categories!
+                        .toString()
+                        .substring(1, book.categories!.toString().length - 1),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              if (book.description != null && book.description != '')
+                ListTile(
+                  onTap: () => showDialog(
+                    barrierDismissible: true,
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      scrollable: true,
+                      content: Text(book.description!),
                     ),
                   ),
-                  if (book.authors!.isNotEmpty && book.authors![0] != '')
-                    ListTile(
-                      leading: const Icon(Icons.people),
-                      title: Text(
-                        book.authors!
-                            .toString()
-                            .substring(1, book.authors!.toString().length - 1),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  if (book.categories!.isNotEmpty && book.categories![0] != '')
-                    ListTile(
-                      leading: const Icon(Icons.category),
-                      title: Text(
-                        book.categories!.toString().substring(
-                            1, book.categories!.toString().length - 1),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  if (book.datePublished != null)
-                    ListTile(
-                      leading: const Icon(Icons.date_range),
-                      title: Text(
-                        DateFormat('yyyy-MM-dd')
-                            .format(book.datePublished!)
-                            .toString(),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  if (book.nOfPages != null)
-                    ListTile(
-                      leading: const Icon(Icons.pages),
-                      title: Text(
-                        book.nOfPages!.toString(),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                ],
-              ),
-            ),
+                  leading: Icon(Icons.description),
+                  title: Text(
+                    book.description!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 4,
+                  ),
+                ),
+              if (book.datePublished != null)
+                ListTile(
+                  leading: const Icon(Icons.date_range),
+                  title: Text(
+                    DateFormat('yyyy-MM-dd')
+                        .format(book.datePublished!)
+                        .toString(),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              if (book.nOfPages != null)
+                ListTile(
+                  leading: const Icon(Icons.pages),
+                  title: Text(
+                    book.nOfPages!.toString() + " " + 'pages'.tr(),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

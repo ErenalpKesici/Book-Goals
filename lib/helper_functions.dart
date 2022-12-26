@@ -9,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -21,6 +22,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'main.dart';
 import 'old_goals.dart';
 import 'package:http/http.dart' as http;
+import 'package:country_icons/country_icons.dart';
 
 List<String> getDurations() {
   return <String>['days'.tr(), 'weeks'.tr(), 'months'.tr(), 'years'.tr()];
@@ -162,8 +164,6 @@ Future<List<Book>> queryBooks(String query) async {
       'https://www.googleapis.com/books/v1/volumes?q=' +
           query +
           ':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ'));
-  // print(r.body);
-  //  print('https://www.googleapis.com/books/v1/volumes?q='+query+':&key=AIzaSyDLoyAOZDuFluC26GIEFsEhj1ogF_EnsSQ');
   Map<String, dynamic> bookResults = jsonDecode(r.body);
   if (bookResults['totalItems'] < 1) return List.empty();
   List<Book> ret = List.empty(growable: true);
@@ -201,6 +201,7 @@ Future<List<Book>> queryBooks(String query) async {
     Book book = Book(
         id: item['id'],
         title: volumeInfo['title'],
+        description: volumeInfo['description'],
         categories: categories,
         authors: authors,
         date: DateTime.now(),
@@ -209,7 +210,9 @@ Future<List<Book>> queryBooks(String query) async {
         datePublished: datePublished,
         imgUrl: volumeInfo['imageLinks'] == null
             ? ''
-            : volumeInfo['imageLinks']['thumbnail']);
+            : volumeInfo['imageLinks']['thumbnail'],
+        language: volumeInfo['language'],
+        subtitle: volumeInfo['subtitle']);
     ret.add(book);
   }
   ret = filterDuplicates(ret);
@@ -230,6 +233,39 @@ DecorationImage getDecorationImage(String imgUrl) {
     );
   }
   return decorationImage;
+}
+
+ListTile getBookTile(Book book, action) {
+  return ListTile(
+    minVerticalPadding: 10,
+    isThreeLine: true,
+    title: Text(book.title!, style: getCardTextStyle()),
+    subtitle: Text(
+        book.subtitle != null && book.subtitle != ""
+            ? book.subtitle!
+            : book.authors != null && book.authors!.isNotEmpty
+                ? book.authors!.first
+                : '',
+        style: getCardTextStyle()),
+    trailing: book.language != null && book.language != ''
+        ? Opacity(
+            opacity: .75,
+            child: Container(
+                width: 30,
+                height: 20,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: book.language == 'en'
+                          ? AssetImage("assets/imgs/en.png")
+                          : AssetImage(
+                              'icons/flags/png/' + book.language! + '.png',
+                              package: 'country_icons'),
+                    ))),
+          )
+        : null,
+    onTap: action,
+  );
 }
 
 Drawer getDrawer(BuildContext context) {
@@ -319,18 +355,17 @@ Drawer getDrawer(BuildContext context) {
   );
 }
 
-List<BottomNavigationBarItem> getNavs() {
+List<GButton> getNavs() {
   return [
-    BottomNavigationBarItem(
-      icon: const Icon(Icons.sports_score_rounded),
-      label: 'myGoal'.tr(),
+    GButton(
+      icon: Icons.sports_score_rounded,
+      text: 'myGoal'.tr(),
     ),
-    BottomNavigationBarItem(
-      icon: const Icon(Icons.search),
-      label: 'search'.tr(),
+    GButton(
+      icon: Icons.search,
+      text: 'search'.tr(),
     ),
-    BottomNavigationBarItem(
-        icon: const Icon(Icons.library_books), label: "myLibrary".tr())
+    GButton(icon: Icons.library_books, text: "myLibrary".tr())
   ];
 }
 
